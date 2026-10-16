@@ -1,7 +1,11 @@
 @if (aviso()) {
   <p class="resumo-aviso">{{ aviso() }}</p>
 }
-<section class="comparacao-resumo" aria-label="Resumo do último ano disponível">
+<section
+  class="comparacao-resumo"
+  aria-label="Resumo do último ano disponível"
+  [attr.aria-busy]="carregando()"
+>
   @for (item of itens(); track item.titulo) {
     <article class="resumo-card">
       <span class="resumo-card__icone" aria-hidden="true">
@@ -9,17 +13,14 @@
       </span>
       <div class="resumo-card__conteudo">
         <span class="resumo-card__titulo">{{ item.titulo }}</span>
-        @if (item.tom) {
-          <strong
-            class="resumo-card__valor resumo-card__valor--chip"
-            [class.is-positivo]="item.tom === 'positivo'"
-            [class.is-negativo]="item.tom === 'negativo'"
-            >{{ item.valor }}</strong
-          >
+        @if (carregando()) {
+          <span class="skeleton-valor"></span>
+        } @else if (item.selo) {
+          <strong class="resumo-card__valor resumo-card__valor--selo">{{ item.valor }}</strong>
         } @else {
           <strong class="resumo-card__valor">{{ item.valor }}</strong>
         }
-        @if (item.descricao) {
+        @if (item.descricao && !carregando()) {
           <small>{{ item.descricao }}</small>
         }
       </div>

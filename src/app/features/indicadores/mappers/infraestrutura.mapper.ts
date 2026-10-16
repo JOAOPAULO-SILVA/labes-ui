@@ -296,6 +296,17 @@ export function mapAnaliseTemporalResponseToModel(
   return { descricao: api.descricao, graficos, listaGraficos };
 }
 
+/** Lê `indicadores` quando a API passar a enviá-lo (campo proposto ao backend). */
+function lerIndicadores(ponto: object): Record<string, 0 | 1 | null> | null {
+  const bruto = (ponto as { indicadores?: unknown }).indicadores;
+  if (!bruto || typeof bruto !== 'object') return null;
+  const resultado: Record<string, 0 | 1 | null> = {};
+  for (const [chave, valor] of Object.entries(bruto)) {
+    resultado[chave] = valor === 1 || valor === 0 ? valor : null;
+  }
+  return resultado;
+}
+
 export function mapComparacaoEscolaMunicipioResponseToModel(
   api: ComparacaoInfraestruturaResponse,
 ): ComparacaoEscolaMunicipioModel {
@@ -327,6 +338,7 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
         quantidade_pares_validos: ponto.quantidade_pares_validos,
         denominador_pares: ponto.denominador_pares,
         cobertura_pares_percentual: ponto.cobertura_pares_percentual ?? null,
+        indicadores: lerIndicadores(ponto),
       }),
     ),
   };
@@ -379,6 +391,7 @@ function criarPontoSemDados(ano: number, totalIndicadores: number): PontoCompara
     quantidade_pares_validos: 0,
     denominador_pares: 0,
     cobertura_pares_percentual: null,
+    indicadores: null,
   };
 }
 
@@ -425,34 +438,4 @@ export function mapEscolasParaBusca(entradas: EscolaGeoEntryModel[]): EscolaBusc
       localizacao: entrada.no_tp_localizacao ?? null,
     }))
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
-}
-
-export interface ResultadoBuscaEscolasModel {
-  itens: EscolaBuscaModel[];
-  /** Total de escolas que correspondem ao termo, mesmo além do limite exibido. */
-  total: number;
-}
-
-/** Filtra por nome (sem diferenciar acentos/maiúsculas) ou pelo código INEP. */
-export function filtrarEscolasBusca(
-  escolas: EscolaBuscaModel[],
-  termo: string,
-  limite = 8,
-): ResultadoBuscaEscolasModel {
-  const termoNormalizado = normalizarTexto(termo);
-  if (!termoNormalizado) return { itens: [], total: 0 };
-
-  const somenteDigitos = /^\d+$/.test(termoNormalizado);
-  const itens: EscolaBuscaModel[] = [];
-  let total = 0;
-  for (const escola of escolas) {
-    const corresponde = somenteDigitos
-      ? String(escola.co_entidade).startsWith(termoNormalizado)
-      : normalizarTexto(escola.nome).includes(termoNormalizado);
-    if (corresponde) {
-      total++;
-      if (itens.length < limite) itens.push(escola);
-    }
-  }
-  return { itens, total };
 }

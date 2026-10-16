@@ -1,5 +1,6 @@
 import { PlotlyFigure } from '../../../core/api/models/plotly-figure';
 import {
+  ItemComposicaoIndiceModel,
   PontoComparacaoMunicipioModel,
   SerieGraficoComparacaoModel,
 } from '../models/infraestrutura.models';
@@ -43,9 +44,33 @@ export const TEXTOS_COMPARACAO = {
   ],
   ressalva:
     'Metodologia de cálculo provisória e não homologada. O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
+  inicial: 'Selecione uma escola para visualizar a evolução temporal.',
+  composicaoIndisponivel: 'O detalhamento por indicador ainda não é fornecido pela API.',
+  valoresIndicador: { sim: 'Sim', nao: 'Não', sem_dados: 'Sem dados' },
   semHistorico:
     'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
 } as const;
+
+/** Os 17 indicadores da metodologia infraestrutura-v2-provisoria (contrato BE-05 v2). */
+export const INDICADORES_METODOLOGIA = [
+  'in_agua_potavel',
+  'in_energia_rede_publica',
+  'in_esgoto_rede_publica',
+  'in_lixo_servico_coleta',
+  'in_banheiro',
+  'in_banheiro_pne',
+  'in_biblioteca',
+  'in_sala_leitura',
+  'in_laboratorio_ciencias',
+  'in_laboratorio_informatica',
+  'in_sala_multiuso',
+  'in_sala_atendimento_especial',
+  'in_cozinha',
+  'in_refeitorio',
+  'in_quadra_esportes',
+  'in_patio_coberto',
+  'in_auditorio',
+] as const;
 
 const CORES = {
   escola: '#075be8',
@@ -160,14 +185,32 @@ export function selecionarPontoResumo(
   return comDados.at(-1) ?? serie.pontos.at(-1) ?? null;
 }
 
-export type TomResumoModel = 'neutro' | 'positivo' | 'negativo';
-
 export interface ItemResumoComparacaoModel {
   titulo: string;
   valor: string;
   descricao?: string;
   icone: string;
-  tom?: TomResumoModel;
+  /** Valor exibido como selo, como a diferença no protótipo. */
+  selo?: boolean;
+}
+
+const ICONES_RESUMO = {
+  escola: 'pi-building',
+  municipio: 'pi-users',
+  diferenca: 'pi-chart-line',
+  indicadores: 'pi-file',
+};
+
+/** Cartões sem dados: estado inicial, carregamento, erro e dados insuficientes. */
+export function montarResumoVazio(): ItemResumoComparacaoModel[] {
+  const r = TEXTOS_COMPARACAO.resumo;
+  const semDado = TEXTOS_COMPARACAO.semDado;
+  return [
+    { titulo: r.escola, valor: semDado, icone: ICONES_RESUMO.escola },
+    { titulo: r.municipio, valor: semDado, icone: ICONES_RESUMO.municipio },
+    { titulo: r.diferenca, valor: semDado, icone: ICONES_RESUMO.diferenca, selo: true },
+    { titulo: r.indicadores, valor: semDado, icone: ICONES_RESUMO.indicadores },
+  ];
 }
 
 /** Os quatro cartões do protótipo, a partir do último ano disponível. */
@@ -178,34 +221,55 @@ export function montarResumoComparacao(
   if (!ponto) return [];
 
   const r = TEXTOS_COMPARACAO.resumo;
-  const diferenca = ponto.diferenca_pontos_percentuais;
+  const anosComDados = serie.pontos.filter((p) => p.indice_escola_percentual !== null);
+  const mesmoConjunto =
+    new Set(anosComDados.map((p) => p.quantidade_indicadores_validos)).size <= 1;
 
   return [
     {
       titulo: r.escola,
       valor: formatarPercentual(ponto.indice_escola_percentual),
       descricao: `${ponto.quantidade_indicadores_presentes} de ${ponto.total_indicadores} recursos disponíveis`,
-      icone: 'pi-building',
+      icone: ICONES_RESUMO.escola,
     },
     {
       titulo: r.municipio,
       valor: formatarPercentual(ponto.media_municipal_percentual),
       descricao: `${ponto.quantidade_pares_validos} escolas na referência`,
-      icone: 'pi-users',
+      icone: ICONES_RESUMO.municipio,
     },
     {
       titulo: r.diferenca,
-      valor: formatarPontosPercentuais(diferenca),
-      icone: 'pi-chart-line',
-      tom: diferenca === null ? 'neutro' : diferenca < 0 ? 'negativo' : 'positivo',
+      valor: formatarPontosPercentuais(ponto.diferenca_pontos_percentuais),
+      icone: ICONES_RESUMO.diferenca,
+      selo: true,
     },
     {
       titulo: r.indicadores,
       valor: String(ponto.quantidade_indicadores_validos),
-      descricao: `de ${ponto.total_indicadores} indicadores da metodologia`,
-      icone: 'pi-file',
+      descricao: mesmoConjunto ? 'mesmo conjunto em todos os anos' : 'varia entre os anos',
+      icone: ICONES_RESUMO.indicadores,
     },
   ];
+}
+
+/**
+ * Composição do índice no ano do resumo, na ordem da metodologia.
+ * Sem `indicadores` na resposta, todos aparecem como "Sem dados".
+ */
+export function montarComposicaoIndice(
+  ponto: PontoComparacaoMunicipioModel | null,
+  chaves: readonly string[],
+  labels: ReadonlyMap<string, string>,
+): ItemComposicaoIndiceModel[] {
+  return chaves.map((chave) => {
+    const valor = ponto?.indicadores?.[chave];
+    return {
+      chave,
+      label: labels.get(chave) ?? chave,
+      valor: valor === 1 ? 'sim' : valor === 0 ? 'nao' : 'sem_dados',
+    };
+  });
 }
 
 export type ClassificacaoSerieComparacao = 'completa' | 'sem_historico' | 'sem_pares';

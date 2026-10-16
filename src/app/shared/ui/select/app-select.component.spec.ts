@@ -34,6 +34,30 @@ describe('AppSelectComponent', () => {
 
     expect(select.options().map((option) => option.label)).toEqual(['Ativo', 'Inativo']);
   });
+
+  it('não tem busca nem rolagem virtual por padrão', async () => {
+    const fixture = await createHost();
+    const select = fixture.debugElement.query(By.directive(AppSelectComponent))
+      .componentInstance as AppSelectComponent;
+
+    expect(select.searchable()).toBe(false);
+    expect(select.useVirtualScroll()).toBe(false);
+  });
+
+  it('usa rolagem virtual em listas longas e ajusta a altura com descrição', async () => {
+    const fixture = await createHost();
+    const debug = fixture.debugElement.query(By.directive(AppSelectComponent));
+    const select = debug.componentInstance as AppSelectComponent;
+    fixture.componentInstance.options = Array.from({ length: 150 }, (_, i) => ({
+      label: 'Escola ' + i,
+      value: String(i),
+      description: 'Belém',
+    }));
+    fixture.detectChanges();
+
+    expect(select.useVirtualScroll()).toBe(true);
+    expect(select.itemHeight()).toBe(56);
+  });
 });
 
 async function createHost(): Promise<ComponentFixture<HostComponent>> {

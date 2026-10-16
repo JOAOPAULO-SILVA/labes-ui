@@ -3,10 +3,12 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import {
   TEXTOS_COMPARACAO,
   montarResumoComparacao,
+  montarResumoVazio,
   selecionarPontoResumo,
 } from '../../mappers/comparacao-grafico.mapper';
 import { SerieGraficoComparacaoModel } from '../../models/infraestrutura.models';
 
+/** Aviso do ano e os quatro cartões; sem série, os cartões mostram "Sem dados". */
 @Component({
   selector: 'app-comparacao-resumo',
   standalone: true,
@@ -15,11 +17,16 @@ import { SerieGraficoComparacaoModel } from '../../models/infraestrutura.models'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ComparacaoResumoComponent {
-  readonly serie = input.required<SerieGraficoComparacaoModel>();
+  readonly serie = input<SerieGraficoComparacaoModel | null>(null);
+  readonly carregando = input(false);
 
-  protected readonly itens = computed(() => montarResumoComparacao(this.serie()));
+  protected readonly itens = computed(() => {
+    const serie = this.serie();
+    return serie ? montarResumoComparacao(serie) : montarResumoVazio();
+  });
   protected readonly aviso = computed(() => {
-    const ponto = selecionarPontoResumo(this.serie());
+    const serie = this.serie();
+    const ponto = serie ? selecionarPontoResumo(serie) : null;
     return ponto ? TEXTOS_COMPARACAO.resumoDoAno(ponto.ano) : '';
   });
 }

@@ -2,75 +2,6 @@
   display: block;
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -600px 0;
-  }
-  100% {
-    background-position: 600px 0;
-  }
-}
-
-.skeleton-bar,
-.skeleton-chart,
-.skeleton-card {
-  background: linear-gradient(90deg, #e8eef5 25%, #f4f7fb 50%, #e8eef5 75%);
-  background-size: 600px 100%;
-  animation: shimmer 1.4s infinite linear;
-  border-radius: 6px;
-}
-
-.skeleton-page {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.skeleton-filter-panel {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  padding: 22px;
-  border: 1px solid #d7e1ee;
-  border-radius: 8px;
-  background: #fff;
-}
-
-.skeleton-bar {
-  height: 20px;
-  width: 100%;
-
-  &--title {
-    height: 28px;
-    width: 220px;
-  }
-}
-
-.skeleton-cards {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
-  gap: 12px;
-}
-
-.skeleton-card {
-  height: 136px;
-  border-radius: 8px;
-}
-
-.skeleton-chart {
-  height: 420px;
-  border-radius: 8px;
-}
-
-.sr-only {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-  white-space: nowrap;
-}
-
 .analise-temporal-page {
   display: grid;
   gap: 16px;
@@ -78,6 +9,17 @@
   margin: 0 auto;
   padding: 24px 0 32px;
   color: var(--sie-color-text);
+}
+
+.filtro-escola {
+  display: grid;
+  grid-template-columns: minmax(260px, 420px) minmax(180px, 240px);
+  gap: 16px;
+  padding: 18px 22px;
+  border: 1px solid #cfdbea;
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(10, 42, 104, 0.08);
 }
 
 .comparacao-conteudo {
@@ -97,7 +39,15 @@
   text-align: center;
 }
 
+.detalhes {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: stretch;
+}
+
 .regras {
+  height: 100%;
   padding: 18px 22px;
   border: 1px solid #dce5ef;
   border-radius: 8px;
@@ -154,6 +104,12 @@
   line-height: 1.5;
 }
 
+@media (max-width: 960px) {
+  .detalhes {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 820px) {
   .analise-temporal-page {
     width: min(100% - 20px, var(--sie-content-width));
@@ -161,8 +117,9 @@
   }
 }
 
-.panorama-secao {
-  margin-top: 16px;
-  padding-top: 24px;
-  border-top: 1px solid #dce5ef;
+@media (max-width: 620px) {
+  .filtro-escola {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
 }

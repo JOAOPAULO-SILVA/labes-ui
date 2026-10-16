@@ -8,7 +8,10 @@ import {
   formatarPontosPercentuais,
   montarFiguraComparacao,
   montarLinhasTooltip,
+  INDICADORES_METODOLOGIA,
+  montarComposicaoIndice,
   montarResumoComparacao,
+  montarResumoVazio,
   selecionarPontoResumo,
 } from './comparacao-grafico.mapper';
 import {
@@ -88,19 +91,32 @@ describe('montarResumoComparacao', () => {
       ['Escola selecionada', '70,59%', '12 de 17 recursos disponíveis'],
       ['Demais escolas do município', 'Sem dados', '0 escolas na referência'],
       ['Diferença', 'Sem dados', undefined],
-      ['Indicadores válidos', '17', 'de 17 indicadores da metodologia'],
+      ['Indicadores válidos', '17', 'varia entre os anos'],
     ]);
-    expect(resumo[2].tom).toBe('neutro');
+    expect(resumo[2].selo).toBe(true);
   });
 
-  it('marca a diferença negativa', () => {
+  it('diz "mesmo conjunto em todos os anos" só quando a quantidade não muda', () => {
+    const constante = prepararSerieGraficoComparacao(
+      modelo.serie.map((p) => ({ ...p, quantidade_indicadores_validos: 17 })),
+    );
+    expect(montarResumoComparacao(constante)[3].descricao).toBe('mesmo conjunto em todos os anos');
+  });
+
+  it('mostra a diferença negativa com o sinal', () => {
     const negativa = prepararSerieGraficoComparacao([
       { ...modelo.serie[0], diferenca_pontos_percentuais: -32.21 },
     ]);
-    expect(montarResumoComparacao(negativa)[2]).toMatchObject({
-      valor: '-32,21 p.p.',
-      tom: 'negativo',
-    });
+    expect(montarResumoComparacao(negativa)[2].valor).toBe('-32,21 p.p.');
+  });
+
+  it('tem cartões "Sem dados" para os estados sem série', () => {
+    expect(montarResumoVazio().map((i) => [i.titulo, i.valor])).toEqual([
+      ['Escola selecionada', 'Sem dados'],
+      ['Demais escolas do município', 'Sem dados'],
+      ['Diferença', 'Sem dados'],
+      ['Indicadores válidos', 'Sem dados'],
+    ]);
   });
 
   it('é vazio sem pontos', () => {
@@ -136,5 +152,35 @@ describe('classificarSerieComparacao', () => {
     expect(
       classificarSerieComparacao({ ...base, escola: [40, null], mediaMunicipal: [null, null] }),
     ).toBe('sem_pares');
+  });
+});
+
+describe('montarComposicaoIndice', () => {
+  const labels = new Map([
+    ['in_agua_potavel', 'Água potável'],
+    ['in_biblioteca', 'Biblioteca'],
+  ]);
+
+  it('converte 1, 0 e null em Sim, Não e Sem dados, na ordem da metodologia', () => {
+    const ponto = {
+      ...modelo.serie[0],
+      indicadores: { in_agua_potavel: 1 as const, in_biblioteca: 0 as const, in_auditorio: null },
+    };
+    const itens = montarComposicaoIndice(
+      ponto,
+      ['in_agua_potavel', 'in_biblioteca', 'in_auditorio'],
+      labels,
+    );
+    expect(itens).toEqual([
+      { chave: 'in_agua_potavel', label: 'Água potável', valor: 'sim' },
+      { chave: 'in_biblioteca', label: 'Biblioteca', valor: 'nao' },
+      { chave: 'in_auditorio', label: 'in_auditorio', valor: 'sem_dados' },
+    ]);
+  });
+
+  it('mostra todos como "Sem dados" quando a API não envia os indicadores', () => {
+    const itens = montarComposicaoIndice(null, INDICADORES_METODOLOGIA, labels);
+    expect(itens).toHaveLength(17);
+    expect(itens.every((i) => i.valor === 'sem_dados')).toBe(true);
   });
 });

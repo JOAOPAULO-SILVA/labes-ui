@@ -1,114 +1,66 @@
 <div class="analise-temporal-page">
   <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
-  @switch (catalogo()) {
-    @case ('carregando') {
-      <div class="skeleton-filter-panel" aria-busy="true" aria-label="Carregando escolas">
-        <div class="skeleton-bar skeleton-bar--title"></div>
-        <div class="skeleton-bar"></div>
-      </div>
-    }
-    @case ('erro') {
-      <app-estado-card
-        tipo="erro"
-        titulo="Não foi possível carregar a lista de escolas."
-        acaoLabel="Tentar novamente"
-        (acao)="carregarCatalogo()"
-      >
-        Verifique sua conexão e tente novamente.
-      </app-estado-card>
-    }
-    @default {
-      <app-escola-busca
-        [escolas]="escolas()"
-        [selecionada]="escolaSelecionada()"
-        (selecionar)="selecionar($event)"
-        (limpar)="limpar()"
-      />
-    }
-  }
+  <section class="filtro-escola" aria-label="Seleção de escola">
+    <app-select
+      class="filtro-escola__escola"
+      [id]="'escola-select'"
+      label="Escola"
+      placeholder="Selecione uma escola"
+      searchPlaceholder="Buscar pelo nome, município ou INEP"
+      emptyMessage="Nenhuma escola encontrada"
+      [options]="opcoesEscola()"
+      [searchable]="true"
+      [showClear]="true"
+      [loading]="catalogo() === 'carregando'"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="escolaSelecionada()?.co_entidade ?? null"
+      (ngModelChange)="onEscolaChange($event)"
+    />
+    <app-select
+      class="filtro-escola__municipio"
+      [id]="'municipio-select'"
+      label="Município"
+      placeholder="—"
+      [options]="opcoesMunicipio()"
+      [disabled]="true"
+      [ngModel]="escolaSelecionada()?.municipio ?? null"
+    />
+  </section>
 
   <div class="comparacao-conteudo" aria-live="polite">
-    @switch (estado().tipo) {
-      @case ('inicial') {
-        @if (catalogo() === 'pronto') {
-          <app-estado-card icone="pi-search" titulo="Selecione uma escola para começar.">
-            Busque pelo nome ou código INEP. A série histórica aparece aqui assim que a escola for
-            selecionada.
-          </app-estado-card>
-        }
-      }
+    <app-comparacao-resumo [serie]="serie()" [carregando]="carregando()" />
 
-      @case ('carregando') {
-        <div class="skeleton-page" aria-busy="true">
-          <span class="sr-only">Carregando dados da escola selecionada.</span>
-          <div class="skeleton-cards">
-            @for (i of [1, 2, 3, 4]; track i) {
-              <div class="skeleton-card"></div>
-            }
-          </div>
-          <div class="skeleton-chart"></div>
-        </div>
-      }
+    <p class="dica-grafico">{{ textos.dicaGrafico }}</p>
 
-      @case ('erro') {
-        @if (estado(); as e) {
-          @if (e.tipo === 'erro') {
-            <app-estado-card
-              tipo="erro"
-              [titulo]="e.erro.mensagem"
-              [acaoLabel]="
-                e.erro.codigo !== 'not_found' && e.erro.codigo !== 'validation_error'
-                  ? 'Tentar novamente'
-                  : null
-              "
-              (acao)="tentarNovamente()"
-            />
+    <app-comparacao-grafico
+      [serie]="serie()"
+      [carregando]="carregando()"
+      [mensagem]="mensagemGrafico()"
+      [erro]="erroGrafico()"
+      [acaoLabel]="acaoGrafico()"
+      (acao)="tentarNovamente()"
+    />
+
+    <div class="detalhes">
+      <app-composicao-indice
+        [itens]="composicao().itens"
+        [indisponivel]="composicao().indisponivel"
+      />
+
+      <section class="regras" aria-labelledby="regras-titulo">
+        <h2 id="regras-titulo">Regras metodológicas</h2>
+        <ol>
+          @for (regra of textos.regras; track regra) {
+            <li>{{ regra }}</li>
           }
-        }
-      }
+        </ol>
+      </section>
+    </div>
 
-      @case ('sucesso') {
-        @if (estado(); as e) {
-          @if (e.tipo === 'sucesso') {
-            @if (e.classificacao === 'sem_historico') {
-              <app-estado-card
-                tipo="aviso"
-                icone="pi-calendar-times"
-                [titulo]="textos.semHistorico"
-              />
-            } @else {
-              <app-comparacao-resumo [serie]="e.serie" />
-              <p class="dica-grafico">{{ textos.dicaGrafico }}</p>
-              <app-comparacao-grafico [serie]="e.serie" [titulo]="textos.tituloGrafico" />
-
-              <section class="regras" aria-labelledby="regras-titulo">
-                <h2 id="regras-titulo">Regras metodológicas</h2>
-                <ol>
-                  @for (regra of textos.regras; track regra) {
-                    <li>{{ regra }}</li>
-                  }
-                </ol>
-              </section>
-            }
-          }
-        }
-      }
-    }
-
-    @if (estado().tipo !== 'inicial') {
-      <p class="ressalva">
-        <i class="pi pi-info-circle" aria-hidden="true"></i>
-        {{ textos.ressalva }}
-      </p>
-    }
+    <p class="ressalva">
+      <i class="pi pi-info-circle" aria-hidden="true"></i>
+      {{ textos.ressalva }}
+    </p>
   </div>
-
-  <app-analise-temporal-panorama
-    class="panorama-secao"
-    [fonte]="facade"
-    metricaPadrao="in_agua_potavel"
-    titulo="Panorama do estado"
-    descricao="Evolução agregada de cada métrica no Pará e por rede de ensino."
-  />
 </div>

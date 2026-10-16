@@ -125,6 +125,11 @@ export interface PontoComparacaoMunicipioModel {
   quantidade_pares_validos: number;
   denominador_pares: number;
   cobertura_pares_percentual: number | null;
+  /**
+   * Valor de cada indicador da escola no ano (1 = sim, 0 = não, null = sem dados).
+   * Ainda não enviado pela API (pedido ao backend); `null` quando ausente.
+   */
+  indicadores: Record<string, 0 | 1 | null> | null;
 }
 
 export interface MetodologiaComparacaoMunicipioModel {
@@ -150,6 +155,14 @@ export interface SerieGraficoComparacaoModel {
   escola: (number | null)[];
   mediaMunicipal: (number | null)[];
   pontos: PontoComparacaoMunicipioModel[];
+}
+
+export type ValorIndicadorModel = 'sim' | 'nao' | 'sem_dados';
+
+export interface ItemComposicaoIndiceModel {
+  chave: string;
+  label: string;
+  valor: ValorIndicadorModel;
 }
 
 export type CodigoErroComparacaoMunicipioModel =

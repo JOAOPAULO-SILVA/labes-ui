@@ -1,6 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { MessageService } from 'primeng/api';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +7,7 @@ import { ComparacaoInfraestruturaResponse } from '../../../../../core/api/models
 import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
 import { mapComparacaoEscolaMunicipioResponseToModel } from '../../../mappers/infraestrutura.mapper';
 import comparacaoMock from '../../../mocks/comparacao-escola-municipio.json';
+import comparacaoComIndicadoresMock from '../../../mocks/comparacao-escola-municipio-com-indicadores.json';
 import {
   ComparacaoEscolaMunicipioModel,
   EscolaBuscaModel,
@@ -33,10 +33,13 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   const pagina = () =>
     fixture.componentInstance as unknown as {
-      selecionar(e: EscolaBuscaModel): void;
-      limpar(): void;
+      onEscolaChange(co: number | null): void;
+      tentarNovamente(): void;
     };
-  const texto = () => (fixture.nativeElement as HTMLElement).textContent ?? '';
+  const el = () => fixture.nativeElement as HTMLElement;
+  const texto = () => el().textContent ?? '';
+  const valoresCartoes = () =>
+    [...el().querySelectorAll('.resumo-card__valor')].map((v) => v.textContent?.trim());
 
   beforeEach(() => {
     respostas = new Map();
@@ -50,14 +53,13 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     TestBed.configureTestingModule({
       imports: [AnaliseTemporalPageComponent],
       providers: [
-        MessageService,
         provideRouter([]),
         {
           provide: InfraestruturaFacade,
           useValue: {
             listarEscolasParaBusca: () => of([ESCOLA_A, ESCOLA_B]),
-            listarFiltros: () => of({ metricas: [] }),
-            listarAnaliseTemporal: () => of({ listaGraficos: [] }),
+            listarFiltros: () =>
+              of({ metricas: [{ chave: 'in_agua_potavel', label: 'Água potável' }] }),
             obterComparacaoEscolaMunicipio: obter,
           },
         },
@@ -67,58 +69,120 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     fixture.detectChanges();
   });
 
-  it('não chama a API antes da seleção e orienta o usuário', () => {
+  it('não chama a API antes da seleção e mostra o layout completo sem dados', () => {
     expect(obter).not.toHaveBeenCalled();
-    expect(texto()).toContain('Selecione uma escola para começar.');
+    expect(valoresCartoes()).toEqual(['Sem dados', 'Sem dados', 'Sem dados', 'Sem dados']);
+    expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
+    expect(texto()).toContain('Composição do índice');
+    expect(texto()).toContain('Regras metodológicas');
+    expect(texto()).toContain(
+      'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
+    );
   });
 
   it('mostra carregamento e depois o resultado', () => {
-    pagina().selecionar(ESCOLA_A);
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
     fixture.detectChanges();
     expect(obter).toHaveBeenCalledWith(15012345);
-    expect(
-      fixture.nativeElement.querySelector('.comparacao-conteudo [aria-busy="true"]'),
-    ).not.toBeNull();
+    expect(el().querySelector('.comparacao-resumo[aria-busy="true"]')).not.toBeNull();
 
     respostas.get(15012345)!.next(MODELO);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('app-comparacao-resumo')).not.toBeNull();
-    expect(fixture.nativeElement.querySelector('app-comparacao-grafico')).not.toBeNull();
+    expect(texto()).toContain('Os cartões abaixo indicam um resumo de 2025');
+    expect(valoresCartoes()[0]).toBe('70,59%');
+    expect(el().querySelector('plotly-plot')).not.toBeNull();
   });
 
   it('a nova escola substitui a anterior, mesmo que a anterior responda depois', () => {
-    pagina().selecionar(ESCOLA_A);
-    pagina().selecionar(ESCOLA_B);
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    pagina().onEscolaChange(ESCOLA_B.co_entidade);
     fixture.detectChanges();
 
     expect(respostas.get(15012345)!.observed).toBe(false);
 
     respostas.get(15012345)!.next(MODELO);
     fixture.detectChanges();
-    expect(fixture.nativeElement.querySelector('app-comparacao-grafico')).toBeNull();
-    expect(
-      fixture.nativeElement.querySelector('.comparacao-conteudo [aria-busy="true"]'),
-    ).not.toBeNull();
+    expect(el().querySelector('plotly-plot')).toBeNull();
+    expect(el().querySelector('.comparacao-resumo[aria-busy="true"]')).not.toBeNull();
   });
 
-  it('mostra o erro de forma explícita', () => {
-    pagina().selecionar(ESCOLA_A);
+  it('mostra o erro dentro da área do gráfico, mantendo o layout', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
     respostas.get(15012345)!.error({
       codigo: 'warehouse_unavailable',
       mensagem: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
     });
     fixture.detectChanges();
 
-    expect(texto()).toContain('A fonte de dados está indisponível.');
-    expect(texto()).toContain('Tentar novamente');
+    const area = el().querySelector('.grafico-vazio__mensagem') as HTMLElement;
+    expect(area.textContent).toContain('A fonte de dados está indisponível.');
+    expect(area.getAttribute('role')).toBe('alert');
+    expect(area.textContent).toContain('Tentar novamente');
+    expect(valoresCartoes()).toEqual(['Sem dados', 'Sem dados', 'Sem dados', 'Sem dados']);
+    expect(texto()).toContain('Regras metodológicas');
+  });
+
+  it('não oferece tentar de novo quando a escola não existe', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.error({
+      codigo: 'not_found',
+      mensagem: 'Escola não encontrada na fonte consultada.',
+    });
+    fixture.detectChanges();
+
+    expect(texto()).toContain('Escola não encontrada na fonte consultada.');
+    expect(el().querySelector('.btn-acao')).toBeNull();
+  });
+
+  it('mostra dados insuficientes quando a escola não tem nenhum ano calculável', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next({
+      ...MODELO,
+      serie: MODELO.serie.map((p) => ({
+        ...p,
+        situacao: 'escola_sem_dados',
+        indice_escola_percentual: null,
+      })),
+    });
+    fixture.detectChanges();
+
+    expect(texto()).toContain(
+      'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
+    );
+    expect(el().querySelector('plotly-plot')).toBeNull();
+  });
+
+  it('avisa que a API ainda não detalha os indicadores', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(MODELO);
+    fixture.detectChanges();
+
+    expect(texto()).toContain('O detalhamento por indicador ainda não é fornecido pela API.');
+    expect(texto()).toContain('Água potável');
+  });
+
+  it('preenche a composição quando a resposta traz os indicadores (contrato proposto)', () => {
+    const comIndicadores = mapComparacaoEscolaMunicipioResponseToModel(
+      comparacaoComIndicadoresMock as unknown as ComparacaoInfraestruturaResponse,
+    );
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(comIndicadores);
+    fixture.detectChanges();
+
+    const itens = el().querySelectorAll('.composicao__item');
+    expect(itens).toHaveLength(17);
+    expect(el().querySelectorAll('.composicao__item--sim')).toHaveLength(12);
+    expect(el().querySelectorAll('.composicao__item--nao')).toHaveLength(5);
+    expect(texto()).not.toContain('O detalhamento por indicador ainda não é fornecido pela API.');
   });
 
   it('volta ao estado inicial ao limpar', () => {
-    pagina().selecionar(ESCOLA_A);
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
     respostas.get(15012345)!.next(MODELO);
-    pagina().limpar();
+    pagina().onEscolaChange(null);
     fixture.detectChanges();
 
-    expect(texto()).toContain('Selecione uma escola para começar.');
+    expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
+    expect(valoresCartoes()[0]).toBe('Sem dados');
   });
 });

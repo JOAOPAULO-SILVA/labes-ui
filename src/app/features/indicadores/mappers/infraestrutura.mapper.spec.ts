@@ -48,6 +48,24 @@ describe('mapComparacaoEscolaMunicipioResponseToModel', () => {
     expect(semPares.media_municipal_percentual).toBeNull();
   });
 
+  it('lê os indicadores por ano quando a API os envia', () => {
+    const comIndicadores = structuredClone(resposta) as ComparacaoInfraestruturaResponse;
+    (comIndicadores.data.serie[0] as unknown as Record<string, unknown>)['indicadores'] = {
+      in_agua_potavel: 1,
+      in_biblioteca: 0,
+      in_auditorio: null,
+      in_invalido: 'x',
+    };
+    const [ponto] = mapComparacaoEscolaMunicipioResponseToModel(comIndicadores).serie;
+    expect(ponto.indicadores).toEqual({
+      in_agua_potavel: 1,
+      in_biblioteca: 0,
+      in_auditorio: null,
+      in_invalido: null,
+    });
+    expect(modelo.serie[0].indicadores).toBeNull();
+  });
+
   it('não altera a resposta original', () => {
     const copia = structuredClone(resposta);
     mapComparacaoEscolaMunicipioResponseToModel(resposta);
