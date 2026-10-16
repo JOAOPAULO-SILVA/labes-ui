@@ -13,6 +13,7 @@ import type {
 import {
   AnaliseTemporalModel,
   ComparacaoEscolaMunicipioModel,
+  EscolaBuscaModel,
   DadosFiltrosModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
@@ -27,6 +28,7 @@ import {
   mapAnaliseTemporalResponseToModel,
   mapComparacaoEscolaMunicipioErro,
   mapComparacaoEscolaMunicipioResponseToModel,
+  mapEscolasParaBusca,
   mapFiltrosResponseToModel,
   mapGeoJsonMunicipiosComInfraestrutura,
   mapMapaMunicipioResumoFromPontos,
@@ -198,6 +200,13 @@ export class InfraestruturaFacade {
     ).pipe(
       map(mapAnaliseTemporalResponseToModel),
       catchError(() => of({ descricao: '', graficos: {}, listaGraficos: [] })),
+    );
+  }
+
+  /** Catálogo local de escolas para a busca; não chama a API. */
+  listarEscolasParaBusca(): Observable<EscolaBuscaModel[]> {
+    return from(this.getEscolasGeoMap()).pipe(
+      map((geoMap) => mapEscolasParaBusca([...geoMap.values()])),
     );
   }
 

@@ -1,0 +1,80 @@
+<section class="escola-busca" aria-label="Seleção de escola">
+  @if (selecionada(); as escola) {
+    <div class="escola-selecionada" aria-live="polite">
+      <span class="escola-selecionada__rotulo">Escola selecionada</span>
+      <div class="escola-selecionada__conteudo">
+        <span class="escola-info">
+          <span class="escola-nome">{{ escola.nome }}</span>
+          <span class="escola-municipio">{{ escola.municipio ?? 'Município não informado' }}</span>
+          <span class="escola-detalhes">
+            <span>INEP {{ escola.co_entidade }}</span>
+            @if (escola.dependencia) {
+              <span>{{ escola.dependencia }}</span>
+            }
+            @if (escola.localizacao) {
+              <span>{{ escola.localizacao }}</span>
+            }
+          </span>
+        </span>
+        <button type="button" class="btn-reset" (click)="onLimpar()" [disabled]="desabilitada()">
+          <i class="pi pi-times" aria-hidden="true"></i>
+          Limpar seleção
+        </button>
+      </div>
+    </div>
+  }
+
+  <label class="escola-busca__label" for="escola-busca-input">
+    {{ selecionada() ? 'Trocar escola' : 'Buscar escola' }}
+  </label>
+  <div class="search-input">
+    <i class="pi pi-search" aria-hidden="true"></i>
+    <input
+      id="escola-busca-input"
+      type="text"
+      autocomplete="off"
+      placeholder="Digite o nome da escola ou o código INEP"
+      role="combobox"
+      aria-controls="escola-busca-resultados"
+      [attr.aria-expanded]="buscou()"
+      [value]="termo()"
+      (input)="onTermoChange($event)"
+      [disabled]="desabilitada()"
+    />
+    @if (termo()) {
+      <button type="button" aria-label="Limpar busca" (click)="limparTermo()">
+        <i class="pi pi-times" aria-hidden="true"></i>
+      </button>
+    }
+  </div>
+
+  @if (buscou()) {
+    <ul id="escola-busca-resultados" class="search-results escola-busca__resultados" role="listbox">
+      @for (escola of resultados(); track escola.co_entidade) {
+        <li
+          class="search-result-item"
+          role="option"
+          [attr.aria-selected]="selecionada()?.co_entidade === escola.co_entidade"
+        >
+          <span class="escola-info">
+            <span class="escola-nome">{{ escola.nome }}</span>
+            <span class="escola-municipio">{{
+              escola.municipio ?? 'Município não informado'
+            }}</span>
+          </span>
+          <button
+            type="button"
+            class="btn-selecionar"
+            (click)="onSelecionar(escola)"
+            [disabled]="desabilitada()"
+            [attr.aria-label]="'Selecionar ' + escola.nome"
+          >
+            Selecionar
+          </button>
+        </li>
+      } @empty {
+        <li class="empty-results">Nenhuma escola encontrada para "{{ termo() }}".</li>
+      }
+    </ul>
+  }
+</section>

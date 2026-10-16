@@ -96,6 +96,15 @@ export interface AnaliseTemporalModel {
   listaGraficos: GraficoListaModel[];
 }
 
+/** Opção da busca de escolas: identifica uma única escola pelo `co_entidade`. */
+export interface EscolaBuscaModel {
+  co_entidade: number;
+  nome: string;
+  municipio: string | null;
+  dependencia: string | null;
+  localizacao: string | null;
+}
+
 export type SituacaoComparacaoMunicipioModel =
   | 'disponivel'
   | 'escola_sem_dados'
