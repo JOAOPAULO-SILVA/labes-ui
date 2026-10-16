@@ -9,7 +9,7 @@ import {
 export const TEXTOS_COMPARACAO = {
   serieEscola: 'Escola',
   serieMunicipio: 'Média municipal',
-  eixoY: 'Índice de infraestrutura (%)',
+  eixoY: 'Índice (%)',
   eixoX: 'Ano do Censo Escolar',
   semDado: '—',
   resumo: {
@@ -103,7 +103,7 @@ export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): Plot
         color: CORES.texto,
         size: 12,
       },
-      margin: { l: 64, r: 18, t: 16, b: 64, pad: 0 },
+      margin: { l: 56, r: 18, t: 16, b: 64, pad: 0 },
       hovermode: 'closest',
       hoverlabel: { bgcolor: '#ffffff', bordercolor: '#cfdbea', font: { color: CORES.texto } },
       legend: { orientation: 'h', x: 0, y: 1.12, xanchor: 'left' },
