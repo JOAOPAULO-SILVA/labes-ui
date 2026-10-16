@@ -100,16 +100,6 @@
   }
 }
 
-.ressalva {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-  margin: 0;
-  color: var(--sie-color-muted);
-  font-size: 0.85rem;
-  line-height: 1.5;
-}
-
 @media (max-width: 960px) {
   .detalhes {
     grid-template-columns: minmax(0, 1fr);

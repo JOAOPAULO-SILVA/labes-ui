@@ -42,8 +42,6 @@ export const TEXTOS_COMPARACAO = {
     'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
     'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
   ],
-  ressalva:
-    'Metodologia de cálculo provisória e não homologada. O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
   inicial: 'Selecione uma escola para visualizar a evolução temporal.',
   composicaoIndisponivel: 'O detalhamento por indicador ainda não é fornecido pela API.',
   valoresIndicador: { sim: 'Sim', nao: 'Não', sem_dados: 'Sem dados' },

@@ -199,4 +199,15 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
     expect(valoresCartoes()[0]).toBe('Sem dados');
   });
+
+  it('mostra os avisos de limitação e metodologia só no fim das regras (REQ-04, item 4)', () => {
+    const regras = [...el().querySelectorAll('.regras li')].map((li) => li.textContent?.trim());
+    expect(regras.slice(-2)).toEqual([
+      'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
+      'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
+    ]);
+
+    const ocorrencias = texto().split('não qualidade escolar').length - 1;
+    expect(ocorrencias).toBe(1);
+  });
 });
