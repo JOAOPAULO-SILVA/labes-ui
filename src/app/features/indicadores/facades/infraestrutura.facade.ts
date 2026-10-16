@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, from, Observable, of } from 'rxjs';
+import { firstValueFrom, from, Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { InfraestruturaService } from '../../../core/api/services/infraestrutura.service';
@@ -12,6 +12,7 @@ import type {
 } from '../../../core/api';
 import {
   AnaliseTemporalModel,
+  ComparacaoEscolaMunicipioModel,
   DadosFiltrosModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
@@ -24,6 +25,8 @@ import {
 } from '../models/infraestrutura.models';
 import {
   mapAnaliseTemporalResponseToModel,
+  mapComparacaoEscolaMunicipioErro,
+  mapComparacaoEscolaMunicipioResponseToModel,
   mapFiltrosResponseToModel,
   mapGeoJsonMunicipiosComInfraestrutura,
   mapMapaMunicipioResumoFromPontos,
@@ -195,6 +198,22 @@ export class InfraestruturaFacade {
     ).pipe(
       map(mapAnaliseTemporalResponseToModel),
       catchError(() => of({ descricao: '', graficos: {}, listaGraficos: [] })),
+    );
+  }
+
+  /**
+   * Série 2022–2025 da escola comparada à média municipal.
+   * Diferente dos demais métodos, não troca falhas por resposta vazia:
+   * o erro é propagado como `ErroComparacaoMunicipioModel` para a página exibi-lo.
+   */
+  obterComparacaoEscolaMunicipio(coEntidade: number): Observable<ComparacaoEscolaMunicipioModel> {
+    return from(
+      this.api.getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(
+        { co_entidade: coEntidade },
+      ),
+    ).pipe(
+      map(mapComparacaoEscolaMunicipioResponseToModel),
+      catchError((erro: unknown) => throwError(() => mapComparacaoEscolaMunicipioErro(erro))),
     );
   }
 

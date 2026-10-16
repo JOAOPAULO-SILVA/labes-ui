@@ -1,12 +1,18 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { AppSchemasInfraestruturaAnaliseTemporalResponse } from '../../../core/api/models/app-schemas-infraestrutura-analise-temporal-response';
 import { AppSchemasInfraestruturaMapaResponse } from '../../../core/api/models/app-schemas-infraestrutura-mapa-response';
+import { ComparacaoInfraestruturaResponse } from '../../../core/api/models/comparacao-infraestrutura-response';
 import { FiltrosResponse } from '../../../core/api/models/filtros-response';
 import { PainelEscolasResponse } from '../../../core/api/models/painel-escolas-response';
 import { PainelResponse } from '../../../core/api/models/painel-response';
 import {
   AnaliseTemporalModel,
   ClassificacaoInfraestruturaModel,
+  CodigoErroComparacaoMunicipioModel,
+  ComparacaoEscolaMunicipioModel,
   DadosFiltrosModel,
+  ErroComparacaoMunicipioModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
   GraficoListaModel,
@@ -19,6 +25,7 @@ import {
   MapaPontoModel,
   PainelEscolasModel,
   PainelInfraestruturaModel,
+  PontoComparacaoMunicipioModel,
 } from '../models/infraestrutura.models';
 
 function normalizarTexto(texto: string | null | undefined): string {
@@ -285,4 +292,75 @@ export function mapAnaliseTemporalResponseToModel(
   }));
 
   return { descricao: api.descricao, graficos, listaGraficos };
+}
+
+export function mapComparacaoEscolaMunicipioResponseToModel(
+  api: ComparacaoInfraestruturaResponse,
+): ComparacaoEscolaMunicipioModel {
+  const { escola, municipio, metodologia, serie } = api.data;
+
+  return {
+    escola: { co_entidade: escola.co_entidade, no_entidade: escola.no_entidade },
+    municipio: { co_municipio: municipio.co_municipio, no_municipio: municipio.no_municipio },
+    metodologia: {
+      versao: metodologia.versao,
+      homologada: metodologia.homologada,
+      anos: [...metodologia.anos],
+      indicadores: [...metodologia.indicadores],
+      total_indicadores: metodologia.total_indicadores,
+      cobertura_minima_percentual: metodologia.cobertura_minima_percentual ?? null,
+      observacao: metodologia.observacao,
+    },
+    serie: serie.map(
+      (ponto): PontoComparacaoMunicipioModel => ({
+        ano: ponto.ano,
+        situacao: ponto.situacao,
+        indice_escola_percentual: ponto.indice_escola_percentual ?? null,
+        media_municipal_percentual: ponto.media_municipal_percentual ?? null,
+        diferenca_pontos_percentuais: ponto.diferenca_pontos_percentuais ?? null,
+        quantidade_indicadores_presentes: ponto.quantidade_indicadores_presentes,
+        quantidade_indicadores_validos: ponto.quantidade_indicadores_validos,
+        total_indicadores: ponto.total_indicadores,
+        cobertura_indicadores_percentual: ponto.cobertura_indicadores_percentual ?? null,
+        quantidade_pares_validos: ponto.quantidade_pares_validos,
+        denominador_pares: ponto.denominador_pares,
+        cobertura_pares_percentual: ponto.cobertura_pares_percentual ?? null,
+      }),
+    ),
+  };
+}
+
+const MENSAGENS_ERRO_COMPARACAO: Record<CodigoErroComparacaoMunicipioModel, string> = {
+  not_found: 'Escola não encontrada.',
+  validation_error: 'Código da escola inválido.',
+  internal_error: 'Ocorreu um erro inesperado ao consultar a comparação.',
+  warehouse_unavailable: 'Os dados de infraestrutura estão temporariamente indisponíveis.',
+  network_error: 'Não foi possível conectar ao servidor.',
+};
+
+export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoMunicipioModel {
+  const status = erro instanceof HttpErrorResponse ? erro.status : null;
+  const corpo = erro instanceof HttpErrorResponse ? erro.error : null;
+  const codigoApi =
+    corpo && typeof corpo === 'object' && typeof corpo.code === 'string' ? corpo.code : null;
+
+  let codigo: CodigoErroComparacaoMunicipioModel;
+  if (codigoApi && codigoApi in MENSAGENS_ERRO_COMPARACAO) {
+    codigo = codigoApi as CodigoErroComparacaoMunicipioModel;
+  } else if (status === 0) {
+    codigo = 'network_error';
+  } else if (status === 404) {
+    codigo = 'not_found';
+  } else if (status === 422) {
+    codigo = 'validation_error';
+  } else if (status === 503) {
+    codigo = 'warehouse_unavailable';
+  } else {
+    codigo = 'internal_error';
+  }
+
+  const mensagemApi =
+    corpo && typeof corpo === 'object' && typeof corpo.message === 'string' ? corpo.message : null;
+
+  return { codigo, mensagem: mensagemApi ?? MENSAGENS_ERRO_COMPARACAO[codigo] };
 }

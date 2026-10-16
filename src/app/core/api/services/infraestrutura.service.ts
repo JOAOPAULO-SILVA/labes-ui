@@ -11,8 +11,11 @@ import { StrictHttpResponse } from '../strict-http-response';
 
 import { AppSchemasInfraestruturaAnaliseTemporalResponse } from '../models/app-schemas-infraestrutura-analise-temporal-response';
 import { AppSchemasInfraestruturaMapaResponse } from '../models/app-schemas-infraestrutura-mapa-response';
+import { ComparacaoInfraestruturaResponse } from '../models/comparacao-infraestrutura-response';
 import { getAnaliseTemporalInfraestruturaInfraestruturaAnaliseTemporalGet } from '../fn/infraestrutura/get-analise-temporal-infraestrutura-infraestrutura-analise-temporal-get';
 import { GetAnaliseTemporalInfraestruturaInfraestruturaAnaliseTemporalGet$Params } from '../fn/infraestrutura/get-analise-temporal-infraestrutura-infraestrutura-analise-temporal-get';
+import { getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet } from '../fn/infraestrutura/get-comparacao-infraestrutura-municipio-infraestrutura-analise-temporal-escolas-co-entidade-comparacao-municipio-get';
+import { GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Params } from '../fn/infraestrutura/get-comparacao-infraestrutura-municipio-infraestrutura-analise-temporal-escolas-co-entidade-comparacao-municipio-get';
 import { getMapaInfraestruturaInfraestruturaMapaGet } from '../fn/infraestrutura/get-mapa-infraestrutura-infraestrutura-mapa-get';
 import { GetMapaInfraestruturaInfraestruturaMapaGet$Params } from '../fn/infraestrutura/get-mapa-infraestrutura-infraestrutura-mapa-get';
 import { getPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet } from '../fn/infraestrutura/get-painel-escolas-infraestrutura-infraestrutura-painel-escolas-get';
@@ -176,6 +179,39 @@ export class InfraestruturaService extends BaseService {
   getAnaliseTemporalInfraestruturaInfraestruturaAnaliseTemporalGet(params?: GetAnaliseTemporalInfraestruturaInfraestruturaAnaliseTemporalGet$Params, context?: HttpContext): Promise<AppSchemasInfraestruturaAnaliseTemporalResponse> {
     const resp = this.getAnaliseTemporalInfraestruturaInfraestruturaAnaliseTemporalGet$Response(params, context);
     return resp.then((r: StrictHttpResponse<AppSchemasInfraestruturaAnaliseTemporalResponse>): AppSchemasInfraestruturaAnaliseTemporalResponse => r.body);
+  }
+
+  /** Path part for operation `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet()` */
+  static readonly GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGetPath = '/infraestrutura/analise-temporal/escolas/{co_entidade}/comparacao-municipio';
+
+  /**
+   * Compara a infraestrutura da escola com seu município.
+   *
+   * Retorna a série fixa 2022–2025 da comparação Escola × Município.
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Response(params: GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Params, context?: HttpContext): Promise<StrictHttpResponse<ComparacaoInfraestruturaResponse>> {
+    const obs = getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(this.http, this.rootUrl, params, context);
+    return firstValueFrom(obs);
+  }
+
+  /**
+   * Compara a infraestrutura da escola com seu município.
+   *
+   * Retorna a série fixa 2022–2025 da comparação Escola × Município.
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(params: GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Params, context?: HttpContext): Promise<ComparacaoInfraestruturaResponse> {
+    const resp = this.getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Response(params, context);
+    return resp.then((r: StrictHttpResponse<ComparacaoInfraestruturaResponse>): ComparacaoInfraestruturaResponse => r.body);
   }
 
 }

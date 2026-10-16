@@ -96,6 +96,57 @@ export interface AnaliseTemporalModel {
   listaGraficos: GraficoListaModel[];
 }
 
+export type SituacaoComparacaoMunicipioModel =
+  | 'disponivel'
+  | 'escola_sem_dados'
+  | 'sem_pares_validos'
+  | 'sem_pares_municipio';
+
+/** Ponto anual da comparação Escola × Município. `null` é ausência de dado, nunca zero. */
+export interface PontoComparacaoMunicipioModel {
+  ano: number;
+  situacao: SituacaoComparacaoMunicipioModel;
+  indice_escola_percentual: number | null;
+  media_municipal_percentual: number | null;
+  diferenca_pontos_percentuais: number | null;
+  quantidade_indicadores_presentes: number;
+  quantidade_indicadores_validos: number;
+  total_indicadores: number;
+  cobertura_indicadores_percentual: number | null;
+  quantidade_pares_validos: number;
+  denominador_pares: number;
+  cobertura_pares_percentual: number | null;
+}
+
+export interface MetodologiaComparacaoMunicipioModel {
+  versao: string;
+  homologada: boolean;
+  anos: number[];
+  indicadores: string[];
+  total_indicadores: number;
+  cobertura_minima_percentual: number | null;
+  observacao: string;
+}
+
+export interface ComparacaoEscolaMunicipioModel {
+  escola: { co_entidade: number; no_entidade: string };
+  municipio: { co_municipio: number; no_municipio: string };
+  metodologia: MetodologiaComparacaoMunicipioModel;
+  serie: PontoComparacaoMunicipioModel[];
+}
+
+export type CodigoErroComparacaoMunicipioModel =
+  | 'not_found'
+  | 'validation_error'
+  | 'internal_error'
+  | 'warehouse_unavailable'
+  | 'network_error';
+
+export interface ErroComparacaoMunicipioModel {
+  codigo: CodigoErroComparacaoMunicipioModel;
+  mensagem: string;
+}
+
 export interface GeoJsonGeometryModel {
   type: string;
   coordinates: unknown;
