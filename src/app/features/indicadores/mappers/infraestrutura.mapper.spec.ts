@@ -6,6 +6,7 @@ import comparacaoMock from '../mocks/comparacao-escola-municipio.json';
 import {
   mapComparacaoEscolaMunicipioErro,
   mapComparacaoEscolaMunicipioResponseToModel,
+  prepararSerieGraficoComparacao,
 } from './infraestrutura.mapper';
 
 const resposta = comparacaoMock as ComparacaoInfraestruturaResponse;
@@ -85,5 +86,47 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
 
   it('trata erros que não são HTTP como erro interno', () => {
     expect(mapComparacaoEscolaMunicipioErro(new Error('boom')).codigo).toBe('internal_error');
+  });
+});
+
+describe('prepararSerieGraficoComparacao', () => {
+  const { serie, metodologia } = mapComparacaoEscolaMunicipioResponseToModel(resposta);
+
+  it('funciona com a resposta do endpoint', () => {
+    const preparada = prepararSerieGraficoComparacao(serie, metodologia.anos);
+    expect(preparada.anos).toEqual([2022, 2023, 2024, 2025]);
+    expect(preparada.escola).toEqual([76.47, 70.0, null, 70.59]);
+    expect(preparada.mediaMunicipal).toEqual([64.71, 62.5, null, null]);
+  });
+
+  it('ordena os anos de forma crescente', () => {
+    const embaralhada = [serie[3], serie[0], serie[2], serie[1]];
+    const preparada = prepararSerieGraficoComparacao(embaralhada);
+    expect(preparada.anos).toEqual([2022, 2023, 2024, 2025]);
+    expect(preparada.pontos.map((p) => p.ano)).toEqual([2022, 2023, 2024, 2025]);
+  });
+
+  it('preenche anos ausentes com lacunas em vez de removê-los', () => {
+    const semAnoDoMeio = serie.filter((p) => p.ano !== 2023);
+    const preparada = prepararSerieGraficoComparacao(semAnoDoMeio);
+    expect(preparada.anos).toEqual([2022, 2023, 2024, 2025]);
+    expect(preparada.escola[1]).toBeNull();
+    expect(preparada.mediaMunicipal[1]).toBeNull();
+    expect(preparada.pontos[1].situacao).toBe('escola_sem_dados');
+  });
+
+  it('inclui anos previstos na metodologia que não vieram na série', () => {
+    const preparada = prepararSerieGraficoComparacao([serie[1]], [2022, 2023, 2024, 2025]);
+    expect(preparada.anos).toEqual([2022, 2023, 2024, 2025]);
+    expect(preparada.escola).toEqual([null, 70.0, null, null]);
+  });
+
+  it('devolve série vazia quando não há anos', () => {
+    expect(prepararSerieGraficoComparacao([])).toEqual({
+      anos: [],
+      escola: [],
+      mediaMunicipal: [],
+      pontos: [],
+    });
   });
 });

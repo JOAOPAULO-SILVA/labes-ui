@@ -26,6 +26,7 @@ import {
   PainelEscolasModel,
   PainelInfraestruturaModel,
   PontoComparacaoMunicipioModel,
+  SerieGraficoComparacaoModel,
 } from '../models/infraestrutura.models';
 
 function normalizarTexto(texto: string | null | undefined): string {
@@ -363,4 +364,53 @@ export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoM
     corpo && typeof corpo === 'object' && typeof corpo.message === 'string' ? corpo.message : null;
 
   return { codigo, mensagem: mensagemApi ?? MENSAGENS_ERRO_COMPARACAO[codigo] };
+}
+
+function criarPontoSemDados(ano: number, totalIndicadores: number): PontoComparacaoMunicipioModel {
+  return {
+    ano,
+    situacao: 'escola_sem_dados',
+    indice_escola_percentual: null,
+    media_municipal_percentual: null,
+    diferenca_pontos_percentuais: null,
+    quantidade_indicadores_presentes: 0,
+    quantidade_indicadores_validos: 0,
+    total_indicadores: totalIndicadores,
+    cobertura_indicadores_percentual: null,
+    quantidade_pares_validos: 0,
+    denominador_pares: 0,
+    cobertura_pares_percentual: null,
+  };
+}
+
+/**
+ * Ordena a série por ano e preserva as lacunas: todo ano entre o primeiro e o último
+ * (e todo ano previsto na metodologia) vira um ponto, com `null` quando não há dado.
+ */
+export function prepararSerieGraficoComparacao(
+  serie: PontoComparacaoMunicipioModel[],
+  anosPrevistos: number[] = [],
+): SerieGraficoComparacaoModel {
+  const porAno = new Map(serie.map((ponto) => [ponto.ano, ponto]));
+  const anosConhecidos = [...porAno.keys(), ...anosPrevistos].filter(Number.isInteger);
+
+  if (anosConhecidos.length === 0) {
+    return { anos: [], escola: [], mediaMunicipal: [], pontos: [] };
+  }
+
+  const primeiro = Math.min(...anosConhecidos);
+  const ultimo = Math.max(...anosConhecidos);
+  const totalIndicadores = serie[0]?.total_indicadores ?? 17;
+
+  const pontos: PontoComparacaoMunicipioModel[] = [];
+  for (let ano = primeiro; ano <= ultimo; ano++) {
+    pontos.push(porAno.get(ano) ?? criarPontoSemDados(ano, totalIndicadores));
+  }
+
+  return {
+    anos: pontos.map((ponto) => ponto.ano),
+    escola: pontos.map((ponto) => ponto.indice_escola_percentual),
+    mediaMunicipal: pontos.map((ponto) => ponto.media_municipal_percentual),
+    pontos,
+  };
 }

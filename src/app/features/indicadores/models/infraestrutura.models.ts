@@ -135,6 +135,14 @@ export interface ComparacaoEscolaMunicipioModel {
   serie: PontoComparacaoMunicipioModel[];
 }
 
+/** Série pronta para o gráfico: anos crescentes, um índice por ano e `null` nas lacunas. */
+export interface SerieGraficoComparacaoModel {
+  anos: number[];
+  escola: (number | null)[];
+  mediaMunicipal: (number | null)[];
+  pontos: PontoComparacaoMunicipioModel[];
+}
+
 export type CodigoErroComparacaoMunicipioModel =
   | 'not_found'
   | 'validation_error'
