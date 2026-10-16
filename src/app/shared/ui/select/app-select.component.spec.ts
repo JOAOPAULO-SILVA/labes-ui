@@ -69,3 +69,37 @@ async function createHost(): Promise<ComponentFixture<HostComponent>> {
   fixture.detectChanges();
   return fixture;
 }
+
+@Component({
+  standalone: true,
+  imports: [ReactiveFormsModule, AppSelectComponent],
+  template: `<app-select
+    label="Escola"
+    [options]="options"
+    [showClear]="true"
+    [formControl]="control"
+  />`,
+})
+class HostComLimparComponent {
+  control = new FormControl<string | null>('ativo');
+  options: AppSelectOption<string>[] = [{ label: 'Ativo', value: 'ativo' }];
+}
+
+describe('AppSelectComponent com showClear', () => {
+  it('oferece um botão rotulado que limpa o valor', async () => {
+    await TestBed.configureTestingModule({ imports: [HostComLimparComponent] }).compileComponents();
+    const fixture = TestBed.createComponent(HostComLimparComponent);
+    fixture.detectChanges();
+    await fixture.whenStable();
+    fixture.detectChanges();
+
+    const botao = fixture.nativeElement.querySelector(
+      'button[aria-label="Limpar seleção"]',
+    ) as HTMLButtonElement;
+    expect(botao).not.toBeNull();
+
+    botao.click();
+    fixture.detectChanges();
+    expect(fixture.componentInstance.control.value).toBeNull();
+  });
+});

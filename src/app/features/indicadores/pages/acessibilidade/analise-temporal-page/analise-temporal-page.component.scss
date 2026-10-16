@@ -4,6 +4,7 @@
 
 .analise-temporal-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   width: min(var(--sie-content-width), calc(100% - 32px));
   margin: 0 auto;

@@ -29,6 +29,26 @@ const VIRTUAL_SCROLL_MIN_OPTIONS = 100;
     },
   ],
   styles: `
+    :host {
+      display: block;
+      min-width: 0;
+    }
+    .app-select__clear {
+      display: inline-grid;
+      width: 24px;
+      height: 24px;
+      place-items: center;
+      padding: 0;
+      border: 0;
+      border-radius: 4px;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+    }
+    .app-select__clear:focus-visible {
+      outline: 2px solid var(--sie-color-primary);
+      outline-offset: 1px;
+    }
     .app-select__option {
       display: grid;
       gap: 2px;
@@ -74,6 +94,11 @@ const VIRTUAL_SCROLL_MIN_OPTIONS = 100;
         (ngModelChange)="onValueChange($event)"
         (onBlur)="onTouched()"
       >
+        <ng-template #clearicon>
+          <button type="button" class="app-select__clear" [attr.aria-label]="clearLabel()">
+            <i class="pi pi-times" aria-hidden="true"></i>
+          </button>
+        </ng-template>
         <ng-template #item let-option>
           <span class="app-select__option">
             <span class="app-select__option-label">{{ option.label }}</span>
@@ -103,6 +128,8 @@ export class AppSelectComponent implements ControlValueAccessor {
   readonly disabled = input(false);
   readonly loading = input(false);
   readonly showClear = input(false);
+  /** Rótulo acessível do botão de limpar (`showClear`). */
+  readonly clearLabel = input('Limpar seleção');
   /** Campo de busca na lista; listas longas passam a usar rolagem virtual. */
   readonly searchable = input(false);
   readonly searchPlaceholder = input('Buscar');

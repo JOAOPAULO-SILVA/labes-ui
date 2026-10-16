@@ -4,6 +4,7 @@
 
 .analise-temporal-page {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
   width: min(var(--sie-content-width), calc(100% - 32px));
   margin: 0 auto;
@@ -22,8 +23,13 @@
   box-shadow: 0 16px 34px rgba(10, 42, 104, 0.08);
 }
 
+.filtro-escola app-select {
+  min-width: 0;
+}
+
 .comparacao-conteudo {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 16px;
 }
 
@@ -106,7 +112,7 @@
 
 @media (max-width: 960px) {
   .detalhes {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
   }
 }
 
@@ -119,7 +125,7 @@
 
 @media (max-width: 620px) {
   .filtro-escola {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
     padding: 16px;
   }
 }

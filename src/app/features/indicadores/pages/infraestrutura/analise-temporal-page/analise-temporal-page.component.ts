@@ -78,7 +78,6 @@ export class AnaliseTemporalPageComponent implements OnInit {
   protected readonly catalogo = signal<EstadoCatalogo>('carregando');
   protected readonly escolaSelecionada = signal<EscolaBuscaModel | null>(null);
   protected readonly estado = signal<EstadoComparacao>({ tipo: 'inicial' });
-  private readonly labelsIndicadores = signal<ReadonlyMap<string, string>>(new Map());
 
   protected readonly opcoesEscola = computed<AppSelectOption<number>[]>(() =>
     this.escolas().map((e) => ({
@@ -124,20 +123,13 @@ export class AnaliseTemporalPageComponent implements OnInit {
     const chaves =
       e.tipo === 'sucesso' ? e.comparacao.metodologia.indicadores : INDICADORES_METODOLOGIA;
     return {
-      itens: montarComposicaoIndice(ponto, chaves, this.labelsIndicadores()),
+      itens: montarComposicaoIndice(ponto, chaves),
       indisponivel: ponto !== null && ponto.indicadores === null,
     };
   });
 
   ngOnInit(): void {
     this.carregarCatalogo();
-
-    this.facade
-      .listarFiltros()
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((filtros) =>
-        this.labelsIndicadores.set(new Map(filtros.metricas.map((m) => [m.chave, m.label]))),
-      );
 
     this.selecao$
       .pipe(

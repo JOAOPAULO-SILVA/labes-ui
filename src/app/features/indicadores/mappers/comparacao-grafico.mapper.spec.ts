@@ -156,10 +156,7 @@ describe('classificarSerieComparacao', () => {
 });
 
 describe('montarComposicaoIndice', () => {
-  const labels = new Map([
-    ['in_agua_potavel', 'Água potável'],
-    ['in_biblioteca', 'Biblioteca'],
-  ]);
+  const labels = { in_agua_potavel: 'Água potável', in_biblioteca: 'Biblioteca' };
 
   it('converte 1, 0 e null em Sim, Não e Sem dados, na ordem da metodologia', () => {
     const ponto = {
@@ -179,8 +176,12 @@ describe('montarComposicaoIndice', () => {
   });
 
   it('mostra todos como "Sem dados" quando a API não envia os indicadores', () => {
-    const itens = montarComposicaoIndice(null, INDICADORES_METODOLOGIA, labels);
+    const itens = montarComposicaoIndice(null, INDICADORES_METODOLOGIA);
     expect(itens).toHaveLength(17);
+    expect(itens.map((i) => i.label)).not.toContain('in_banheiro');
+    expect(itens.find((i) => i.chave === 'in_banheiro_pne')?.label).toBe(
+      'Banheiro acessível (PNE)',
+    );
     expect(itens.every((i) => i.valor === 'sem_dados')).toBe(true);
   });
 });

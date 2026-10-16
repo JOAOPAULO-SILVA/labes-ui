@@ -58,8 +58,6 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
           provide: InfraestruturaFacade,
           useValue: {
             listarEscolasParaBusca: () => of([ESCOLA_A, ESCOLA_B]),
-            listarFiltros: () =>
-              of({ metricas: [{ chave: 'in_agua_potavel', label: 'Água potável' }] }),
             obterComparacaoEscolaMunicipio: obter,
           },
         },
@@ -70,6 +68,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
   });
 
   it('não chama a API antes da seleção e mostra o layout completo sem dados', () => {
+    // A facade de teste só expõe o catálogo local e a comparação: qualquer outra chamada falharia.
     expect(obter).not.toHaveBeenCalled();
     expect(valoresCartoes()).toEqual(['Sem dados', 'Sem dados', 'Sem dados', 'Sem dados']);
     expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
@@ -78,6 +77,21 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     expect(texto()).toContain(
       'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
     );
+  });
+
+  it('lista cada escola com nome e município e preenche o município ao selecionar', () => {
+    const instancia = fixture.componentInstance as unknown as {
+      opcoesEscola(): { label: string; value: number; description: string }[];
+      opcoesMunicipio(): { label: string }[];
+    };
+    expect(instancia.opcoesEscola()[0]).toEqual({
+      label: 'EMEF Exemplo',
+      value: 15012345,
+      description: 'Belém · INEP 15012345',
+    });
+
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    expect(instancia.opcoesMunicipio()).toEqual([{ label: 'Belém', value: 'Belém' }]);
   });
 
   it('mostra carregamento e depois o resultado', () => {

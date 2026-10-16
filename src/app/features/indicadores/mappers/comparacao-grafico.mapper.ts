@@ -72,6 +72,27 @@ export const INDICADORES_METODOLOGIA = [
   'in_auditorio',
 ] as const;
 
+/** Nomes dos indicadores na composição do índice (protótipo e catálogo de métricas). */
+export const LABELS_INDICADORES: Readonly<Record<string, string>> = {
+  in_agua_potavel: 'Água potável',
+  in_energia_rede_publica: 'Energia (rede pública)',
+  in_esgoto_rede_publica: 'Esgoto (rede pública)',
+  in_lixo_servico_coleta: 'Coleta de lixo',
+  in_banheiro: 'Banheiro',
+  in_banheiro_pne: 'Banheiro acessível (PNE)',
+  in_biblioteca: 'Biblioteca',
+  in_sala_leitura: 'Sala de leitura',
+  in_laboratorio_ciencias: 'Laboratório de ciências',
+  in_laboratorio_informatica: 'Laboratório de informática',
+  in_sala_multiuso: 'Sala multiuso',
+  in_sala_atendimento_especial: 'Sala de atendimento especial',
+  in_cozinha: 'Cozinha',
+  in_refeitorio: 'Refeitório',
+  in_quadra_esportes: 'Quadra de esportes',
+  in_patio_coberto: 'Pátio coberto',
+  in_auditorio: 'Auditório',
+};
+
 const CORES = {
   escola: '#075be8',
   municipio: '#1aa36f',
@@ -260,13 +281,13 @@ export function montarResumoComparacao(
 export function montarComposicaoIndice(
   ponto: PontoComparacaoMunicipioModel | null,
   chaves: readonly string[],
-  labels: ReadonlyMap<string, string>,
+  labels: Readonly<Record<string, string>> = LABELS_INDICADORES,
 ): ItemComposicaoIndiceModel[] {
   return chaves.map((chave) => {
     const valor = ponto?.indicadores?.[chave];
     return {
       chave,
-      label: labels.get(chave) ?? chave,
+      label: labels[chave] ?? chave,
       valor: valor === 1 ? 'sim' : valor === 0 ? 'nao' : 'sem_dados',
     };
   });
