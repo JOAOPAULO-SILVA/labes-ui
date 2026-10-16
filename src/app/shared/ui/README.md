@@ -5,6 +5,7 @@ PrimeNG is an implementation detail of `shared/ui`. Feature pages should use `ap
 Each component represents a UI intention, not just an HTML element wrapper:
 
 - `app-input`: simple textual input only (`text`, `email`, `url`, `tel` while there is no phone-specific component).
+- `app-select`: choosing one option from a list. Use `searchable` for long lists: it adds a search field and switches to virtual scroll above 100 options. Options may carry a `description` (shown under the label and included in the search).
 - `app-datepicker`: selecting a date. By default it emits `Date | null` with `dateFormat="dd/mm/yy"` for pt-BR display. Use `valueMode="string"` only when a screen contract needs a formatted string, and set `dateFormat` explicitly for that contract.
 - Future specialized fields should get their own wrappers, for example `app-timepicker`, `app-number-input`, `app-password-input`, `app-search-input`, `app-file-upload`, and document/currency/percentage inputs.
 

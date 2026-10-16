@@ -1,0 +1,15 @@
+<section class="composicao" aria-labelledby="composicao-titulo">
+  <h2 id="composicao-titulo">Composição do índice</h2>
+  <ul>
+    @for (item of itens(); track item.chave) {
+      <li [class]="'composicao__item composicao__item--' + item.valor">
+        <i [class]="'pi ' + icones[item.valor]" aria-hidden="true"></i>
+        <span class="composicao__label">{{ item.label }}</span>
+        <span class="composicao__valor">{{ textos.valoresIndicador[item.valor] }}</span>
+      </li>
+    }
+  </ul>
+  @if (indisponivel()) {
+    <p class="composicao__aviso">{{ textos.composicaoIndisponivel }}</p>
+  }
+</section>

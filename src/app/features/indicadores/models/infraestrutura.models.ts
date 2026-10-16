@@ -96,6 +96,87 @@ export interface AnaliseTemporalModel {
   listaGraficos: GraficoListaModel[];
 }
 
+/** Opção da busca de escolas: identifica uma única escola pelo `co_entidade`. */
+export interface EscolaBuscaModel {
+  co_entidade: number;
+  nome: string;
+  municipio: string | null;
+  dependencia: string | null;
+  localizacao: string | null;
+}
+
+export type SituacaoComparacaoMunicipioModel =
+  | 'disponivel'
+  | 'escola_sem_dados'
+  | 'sem_pares_validos'
+  | 'sem_pares_municipio';
+
+/** Ponto anual da comparação Escola × Município. `null` é ausência de dado, nunca zero. */
+export interface PontoComparacaoMunicipioModel {
+  ano: number;
+  situacao: SituacaoComparacaoMunicipioModel;
+  indice_escola_percentual: number | null;
+  media_municipal_percentual: number | null;
+  diferenca_pontos_percentuais: number | null;
+  quantidade_indicadores_presentes: number;
+  quantidade_indicadores_validos: number;
+  total_indicadores: number;
+  cobertura_indicadores_percentual: number | null;
+  quantidade_pares_validos: number;
+  denominador_pares: number;
+  cobertura_pares_percentual: number | null;
+  /**
+   * Valor de cada indicador da escola no ano (1 = sim, 0 = não, null = sem dados).
+   * Ainda não enviado pela API (pedido ao backend); `null` quando ausente.
+   */
+  indicadores: Record<string, 0 | 1 | null> | null;
+}
+
+export interface MetodologiaComparacaoMunicipioModel {
+  versao: string;
+  homologada: boolean;
+  anos: number[];
+  indicadores: string[];
+  total_indicadores: number;
+  cobertura_minima_percentual: number | null;
+  observacao: string;
+}
+
+export interface ComparacaoEscolaMunicipioModel {
+  escola: { co_entidade: number; no_entidade: string };
+  municipio: { co_municipio: number; no_municipio: string };
+  metodologia: MetodologiaComparacaoMunicipioModel;
+  serie: PontoComparacaoMunicipioModel[];
+}
+
+/** Série pronta para o gráfico: anos crescentes, um índice por ano e `null` nas lacunas. */
+export interface SerieGraficoComparacaoModel {
+  anos: number[];
+  escola: (number | null)[];
+  mediaMunicipal: (number | null)[];
+  pontos: PontoComparacaoMunicipioModel[];
+}
+
+export type ValorIndicadorModel = 'sim' | 'nao' | 'sem_dados';
+
+export interface ItemComposicaoIndiceModel {
+  chave: string;
+  label: string;
+  valor: ValorIndicadorModel;
+}
+
+export type CodigoErroComparacaoMunicipioModel =
+  | 'not_found'
+  | 'validation_error'
+  | 'internal_error'
+  | 'warehouse_unavailable'
+  | 'network_error';
+
+export interface ErroComparacaoMunicipioModel {
+  codigo: CodigoErroComparacaoMunicipioModel;
+  mensagem: string;
+}
+
 export interface GeoJsonGeometryModel {
   type: string;
   coordinates: unknown;

@@ -1,0 +1,98 @@
+{
+  "descricao": "comparacao_infraestrutura_escola_municipio",
+  "data": {
+    "escola": {
+      "co_entidade": 15012345,
+      "no_entidade": "EMEF Exemplo"
+    },
+    "municipio": {
+      "co_municipio": 1501402,
+      "no_municipio": "Belém"
+    },
+    "metodologia": {
+      "versao": "infraestrutura-v2-provisoria",
+      "homologada": false,
+      "anos": [2022, 2023, 2024, 2025],
+      "indicadores": [
+        "in_agua_potavel",
+        "in_energia_rede_publica",
+        "in_esgoto_rede_publica",
+        "in_lixo_servico_coleta",
+        "in_banheiro",
+        "in_banheiro_pne",
+        "in_biblioteca",
+        "in_sala_leitura",
+        "in_laboratorio_ciencias",
+        "in_laboratorio_informatica",
+        "in_sala_multiuso",
+        "in_sala_atendimento_especial",
+        "in_cozinha",
+        "in_refeitorio",
+        "in_quadra_esportes",
+        "in_patio_coberto",
+        "in_auditorio"
+      ],
+      "total_indicadores": 17,
+      "cobertura_minima_percentual": null,
+      "observacao": "Metodologia provisória e não homologada. Os resultados não são indicadores oficiais."
+    },
+    "serie": [
+      {
+        "ano": 2022,
+        "situacao": "disponivel",
+        "indice_escola_percentual": 76.47,
+        "quantidade_indicadores_presentes": 13,
+        "quantidade_indicadores_validos": 17,
+        "total_indicadores": 17,
+        "cobertura_indicadores_percentual": 100.0,
+        "media_municipal_percentual": 64.71,
+        "diferenca_pontos_percentuais": 11.76,
+        "quantidade_pares_validos": 85,
+        "denominador_pares": 94,
+        "cobertura_pares_percentual": 90.43
+      },
+      {
+        "ano": 2023,
+        "situacao": "disponivel",
+        "indice_escola_percentual": 70.0,
+        "quantidade_indicadores_presentes": 7,
+        "quantidade_indicadores_validos": 10,
+        "total_indicadores": 17,
+        "cobertura_indicadores_percentual": 58.82,
+        "media_municipal_percentual": 62.5,
+        "diferenca_pontos_percentuais": 7.5,
+        "quantidade_pares_validos": 80,
+        "denominador_pares": 92,
+        "cobertura_pares_percentual": 86.96
+      },
+      {
+        "ano": 2024,
+        "situacao": "escola_sem_dados",
+        "indice_escola_percentual": null,
+        "quantidade_indicadores_presentes": 0,
+        "quantidade_indicadores_validos": 0,
+        "total_indicadores": 17,
+        "cobertura_indicadores_percentual": 0.0,
+        "media_municipal_percentual": null,
+        "diferenca_pontos_percentuais": null,
+        "quantidade_pares_validos": 0,
+        "denominador_pares": 0,
+        "cobertura_pares_percentual": null
+      },
+      {
+        "ano": 2025,
+        "situacao": "sem_pares_validos",
+        "indice_escola_percentual": 70.59,
+        "quantidade_indicadores_presentes": 12,
+        "quantidade_indicadores_validos": 17,
+        "total_indicadores": 17,
+        "cobertura_indicadores_percentual": 100.0,
+        "media_municipal_percentual": null,
+        "diferenca_pontos_percentuais": null,
+        "quantidade_pares_validos": 0,
+        "denominador_pares": 96,
+        "cobertura_pares_percentual": 0.0
+      }
+    ]
+  }
+}

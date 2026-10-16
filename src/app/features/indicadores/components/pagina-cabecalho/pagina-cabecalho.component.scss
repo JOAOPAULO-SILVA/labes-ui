@@ -1,0 +1,31 @@
+:host {
+  display: block;
+}
+
+.voltar-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  color: var(--sie-color-primary);
+  font-weight: 800;
+  font-size: 0.85rem;
+}
+
+.voltar-link:hover {
+  text-decoration: underline;
+}
+
+h1 {
+  margin: 0;
+  color: var(--sie-color-deep);
+  font-size: clamp(1.45rem, 2vw, 2rem);
+  font-weight: 900;
+  line-height: 1.15;
+}
+
+p {
+  margin: 6px 0 0;
+  color: var(--sie-color-muted);
+  font-size: 0.95rem;
+}

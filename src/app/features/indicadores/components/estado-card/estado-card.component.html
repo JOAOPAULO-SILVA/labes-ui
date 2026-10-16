@@ -1,0 +1,15 @@
+<div
+  class="estado-card"
+  [class.estado-card--aviso]="tipo() === 'aviso'"
+  [class.estado-card--erro]="tipo() === 'erro'"
+  [attr.role]="tipo() === 'erro' ? 'alert' : null"
+>
+  <i [class]="'pi ' + iconeClasse()" aria-hidden="true"></i>
+  <div>
+    <strong>{{ titulo() }}</strong>
+    <p><ng-content /></p>
+  </div>
+  @if (acaoLabel(); as label) {
+    <button type="button" class="btn-primario" (click)="acao.emit()">{{ label }}</button>
+  }
+</div>

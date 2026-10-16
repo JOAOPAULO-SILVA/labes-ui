@@ -1,12 +1,19 @@
+import { HttpErrorResponse } from '@angular/common/http';
+
 import { AppSchemasInfraestruturaAnaliseTemporalResponse } from '../../../core/api/models/app-schemas-infraestrutura-analise-temporal-response';
 import { AppSchemasInfraestruturaMapaResponse } from '../../../core/api/models/app-schemas-infraestrutura-mapa-response';
+import { ComparacaoInfraestruturaResponse } from '../../../core/api/models/comparacao-infraestrutura-response';
 import { FiltrosResponse } from '../../../core/api/models/filtros-response';
 import { PainelEscolasResponse } from '../../../core/api/models/painel-escolas-response';
 import { PainelResponse } from '../../../core/api/models/painel-response';
 import {
   AnaliseTemporalModel,
   ClassificacaoInfraestruturaModel,
+  CodigoErroComparacaoMunicipioModel,
+  ComparacaoEscolaMunicipioModel,
   DadosFiltrosModel,
+  EscolaBuscaModel,
+  ErroComparacaoMunicipioModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
   GraficoListaModel,
@@ -19,6 +26,8 @@ import {
   MapaPontoModel,
   PainelEscolasModel,
   PainelInfraestruturaModel,
+  PontoComparacaoMunicipioModel,
+  SerieGraficoComparacaoModel,
 } from '../models/infraestrutura.models';
 
 function normalizarTexto(texto: string | null | undefined): string {
@@ -285,4 +294,148 @@ export function mapAnaliseTemporalResponseToModel(
   }));
 
   return { descricao: api.descricao, graficos, listaGraficos };
+}
+
+/** Lê `indicadores` quando a API passar a enviá-lo (campo proposto ao backend). */
+function lerIndicadores(ponto: object): Record<string, 0 | 1 | null> | null {
+  const bruto = (ponto as { indicadores?: unknown }).indicadores;
+  if (!bruto || typeof bruto !== 'object') return null;
+  const resultado: Record<string, 0 | 1 | null> = {};
+  for (const [chave, valor] of Object.entries(bruto)) {
+    resultado[chave] = valor === 1 || valor === 0 ? valor : null;
+  }
+  return resultado;
+}
+
+export function mapComparacaoEscolaMunicipioResponseToModel(
+  api: ComparacaoInfraestruturaResponse,
+): ComparacaoEscolaMunicipioModel {
+  const { escola, municipio, metodologia, serie } = api.data;
+
+  return {
+    escola: { co_entidade: escola.co_entidade, no_entidade: escola.no_entidade },
+    municipio: { co_municipio: municipio.co_municipio, no_municipio: municipio.no_municipio },
+    metodologia: {
+      versao: metodologia.versao,
+      homologada: metodologia.homologada,
+      anos: [...metodologia.anos],
+      indicadores: [...metodologia.indicadores],
+      total_indicadores: metodologia.total_indicadores,
+      cobertura_minima_percentual: metodologia.cobertura_minima_percentual ?? null,
+      observacao: metodologia.observacao,
+    },
+    serie: serie.map(
+      (ponto): PontoComparacaoMunicipioModel => ({
+        ano: ponto.ano,
+        situacao: ponto.situacao,
+        indice_escola_percentual: ponto.indice_escola_percentual ?? null,
+        media_municipal_percentual: ponto.media_municipal_percentual ?? null,
+        diferenca_pontos_percentuais: ponto.diferenca_pontos_percentuais ?? null,
+        quantidade_indicadores_presentes: ponto.quantidade_indicadores_presentes,
+        quantidade_indicadores_validos: ponto.quantidade_indicadores_validos,
+        total_indicadores: ponto.total_indicadores,
+        cobertura_indicadores_percentual: ponto.cobertura_indicadores_percentual ?? null,
+        quantidade_pares_validos: ponto.quantidade_pares_validos,
+        denominador_pares: ponto.denominador_pares,
+        cobertura_pares_percentual: ponto.cobertura_pares_percentual ?? null,
+        indicadores: lerIndicadores(ponto),
+      }),
+    ),
+  };
+}
+
+/** Mensagens dos estados de erro do protótipo (Figma), por código. */
+const MENSAGENS_ERRO_COMPARACAO: Record<CodigoErroComparacaoMunicipioModel, string> = {
+  not_found: 'Escola não encontrada na fonte consultada.',
+  validation_error: 'Erro de carregamento.',
+  internal_error: 'Falha na requisição. Por favor, tente novamente.',
+  warehouse_unavailable: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
+  network_error: 'Falha na requisição. Por favor, tente novamente.',
+};
+
+export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoMunicipioModel {
+  const status = erro instanceof HttpErrorResponse ? erro.status : null;
+  const corpo = erro instanceof HttpErrorResponse ? erro.error : null;
+  const codigoApi =
+    corpo && typeof corpo === 'object' && typeof corpo.code === 'string' ? corpo.code : null;
+
+  let codigo: CodigoErroComparacaoMunicipioModel;
+  if (codigoApi && Object.hasOwn(MENSAGENS_ERRO_COMPARACAO, codigoApi)) {
+    codigo = codigoApi as CodigoErroComparacaoMunicipioModel;
+  } else if (status === 0) {
+    codigo = 'network_error';
+  } else if (status === 404) {
+    codigo = 'not_found';
+  } else if (status === 422) {
+    codigo = 'validation_error';
+  } else if (status === 503) {
+    codigo = 'warehouse_unavailable';
+  } else {
+    codigo = 'internal_error';
+  }
+
+  return { codigo, mensagem: MENSAGENS_ERRO_COMPARACAO[codigo] };
+}
+
+function criarPontoSemDados(ano: number, totalIndicadores: number): PontoComparacaoMunicipioModel {
+  return {
+    ano,
+    situacao: 'escola_sem_dados',
+    indice_escola_percentual: null,
+    media_municipal_percentual: null,
+    diferenca_pontos_percentuais: null,
+    quantidade_indicadores_presentes: 0,
+    quantidade_indicadores_validos: 0,
+    total_indicadores: totalIndicadores,
+    cobertura_indicadores_percentual: null,
+    quantidade_pares_validos: 0,
+    denominador_pares: 0,
+    cobertura_pares_percentual: null,
+    indicadores: null,
+  };
+}
+
+/**
+ * Ordena a série por ano e preserva as lacunas: todo ano entre o primeiro e o último
+ * (e todo ano previsto na metodologia) vira um ponto, com `null` quando não há dado.
+ */
+export function prepararSerieGraficoComparacao(
+  serie: PontoComparacaoMunicipioModel[],
+  anosPrevistos: number[] = [],
+): SerieGraficoComparacaoModel {
+  const porAno = new Map(serie.map((ponto) => [ponto.ano, ponto]));
+  const anosConhecidos = [...porAno.keys(), ...anosPrevistos].filter(Number.isInteger);
+
+  if (anosConhecidos.length === 0) {
+    return { anos: [], escola: [], mediaMunicipal: [], pontos: [] };
+  }
+
+  const primeiro = Math.min(...anosConhecidos);
+  const ultimo = Math.max(...anosConhecidos);
+  const totalIndicadores = serie[0]?.total_indicadores ?? 17;
+
+  const pontos: PontoComparacaoMunicipioModel[] = [];
+  for (let ano = primeiro; ano <= ultimo; ano++) {
+    pontos.push(porAno.get(ano) ?? criarPontoSemDados(ano, totalIndicadores));
+  }
+
+  return {
+    anos: pontos.map((ponto) => ponto.ano),
+    escola: pontos.map((ponto) => ponto.indice_escola_percentual),
+    mediaMunicipal: pontos.map((ponto) => ponto.media_municipal_percentual),
+    pontos,
+  };
+}
+
+export function mapEscolasParaBusca(entradas: EscolaGeoEntryModel[]): EscolaBuscaModel[] {
+  return entradas
+    .filter((entrada) => entrada.co_entidade > 0 && entrada.no_entidade.trim() !== '')
+    .map((entrada) => ({
+      co_entidade: entrada.co_entidade,
+      nome: entrada.no_entidade.trim(),
+      municipio: entrada.no_municipio ?? null,
+      dependencia: entrada.no_tp_dependencia ?? null,
+      localizacao: entrada.no_tp_localizacao ?? null,
+    }))
+    .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }

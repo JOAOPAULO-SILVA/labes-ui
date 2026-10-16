@@ -1,0 +1,140 @@
+:host {
+  display: block;
+}
+
+.grafico-card {
+  min-width: 0;
+  margin: 0;
+  padding: 16px 18px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+}
+
+figcaption {
+  margin: 0 0 6px;
+  color: #17213d;
+  font-size: 0.96rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.grafico-vazio {
+  display: grid;
+  grid-template-rows: 1fr auto;
+  min-height: 360px;
+  padding-top: 12px;
+}
+
+.grafico-vazio__mensagem {
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  padding: 24px;
+  color: var(--sie-color-muted);
+  text-align: center;
+
+  .pi {
+    color: #8aa0bf;
+    font-size: 1.6rem;
+  }
+
+  p {
+    max-width: 520px;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.btn-acao {
+  min-height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--sie-color-primary);
+  border-radius: 6px;
+  background: var(--sie-color-primary);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #064ec7;
+    background: #064ec7;
+  }
+}
+
+.legenda {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px 24px;
+  margin: 0;
+  padding: 12px 0 4px;
+  list-style: none;
+  color: var(--sie-color-text);
+  font-size: 0.8rem;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+}
+
+.legenda__marca {
+  position: relative;
+  width: 26px;
+  height: 3px;
+  border-radius: 2px;
+
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: inherit;
+    transform: translate(-50%, -50%);
+  }
+
+  &--escola {
+    background: #075be8;
+  }
+
+  &--municipio {
+    background: #1aa36f;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -600px 0;
+  }
+  100% {
+    background-position: 600px 0;
+  }
+}
+
+.skeleton-grafico {
+  border-radius: 8px;
+  background: linear-gradient(90deg, #e8eef5 25%, #f4f7fb 50%, #e8eef5 75%);
+  background-size: 600px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (max-width: 620px) {
+  .grafico-card {
+    padding: 12px;
+  }
+}

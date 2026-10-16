@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { firstValueFrom, from, Observable, of } from 'rxjs';
+import { firstValueFrom, from, Observable, of, throwError } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
 
 import { InfraestruturaService } from '../../../core/api/services/infraestrutura.service';
@@ -10,8 +10,11 @@ import type {
   GetPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet$Params,
   GetPainelInfraestruturaInfraestruturaPainelGet$Params,
 } from '../../../core/api';
+import { getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet } from '../../../core/api/functions';
 import {
   AnaliseTemporalModel,
+  ComparacaoEscolaMunicipioModel,
+  EscolaBuscaModel,
   DadosFiltrosModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
@@ -24,6 +27,9 @@ import {
 } from '../models/infraestrutura.models';
 import {
   mapAnaliseTemporalResponseToModel,
+  mapComparacaoEscolaMunicipioErro,
+  mapComparacaoEscolaMunicipioResponseToModel,
+  mapEscolasParaBusca,
   mapFiltrosResponseToModel,
   mapGeoJsonMunicipiosComInfraestrutura,
   mapMapaMunicipioResumoFromPontos,
@@ -77,6 +83,10 @@ export class InfraestruturaFacade {
           .filter((entry) => Number.isFinite(entry.co_entidade));
 
         return new Map(entries.map((entry) => [entry.co_entidade, entry]));
+      });
+      // Não mantém uma falha em cache: a próxima chamada tenta carregar de novo.
+      this.escolasGeoMap$.catch(() => {
+        this.escolasGeoMap$ = null;
       });
     }
     return this.escolasGeoMap$;
@@ -195,6 +205,31 @@ export class InfraestruturaFacade {
     ).pipe(
       map(mapAnaliseTemporalResponseToModel),
       catchError(() => of({ descricao: '', graficos: {}, listaGraficos: [] })),
+    );
+  }
+
+  /** Catálogo local de escolas para a busca; não chama a API. */
+  listarEscolasParaBusca(): Observable<EscolaBuscaModel[]> {
+    return from(this.getEscolasGeoMap()).pipe(
+      map((geoMap) => mapEscolasParaBusca([...geoMap.values()])),
+    );
+  }
+
+  /**
+   * Série 2022–2025 da escola comparada à média municipal.
+   * Diferente dos demais métodos, não troca falhas por resposta vazia:
+   * o erro é propagado como `ErroComparacaoMunicipioModel` para a página exibi-lo.
+   * Usa a função gerada (Observable) em vez do serviço (Promise) para que cancelar a
+   * inscrição — ao trocar de escola — também cancele a requisição HTTP em andamento.
+   */
+  obterComparacaoEscolaMunicipio(coEntidade: number): Observable<ComparacaoEscolaMunicipioModel> {
+    return getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(
+      this.http,
+      this.api.rootUrl,
+      { co_entidade: coEntidade },
+    ).pipe(
+      map((resposta) => mapComparacaoEscolaMunicipioResponseToModel(resposta.body)),
+      catchError((erro: unknown) => throwError(() => mapComparacaoEscolaMunicipioErro(erro))),
     );
   }
 

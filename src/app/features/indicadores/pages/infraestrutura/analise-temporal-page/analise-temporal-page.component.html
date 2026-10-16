@@ -1,67 +1,61 @@
 <div class="analise-temporal-page">
-  <header class="dashboard-header">
-    <h1>Infraestrutura &middot; Análise Temporal</h1>
-  </header>
+  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
-  @if (isLoading) {
-    <div class="skeleton-page">
-      <div class="skeleton-filter-panel">
-        <div class="skeleton-bar skeleton-bar--title"></div>
-        <div class="skeleton-filter-row">
-          <div class="skeleton-bar"></div>
-          <div class="skeleton-bar skeleton-bar--sm"></div>
-        </div>
-      </div>
-      <div class="skeleton-charts">
-        <div class="skeleton-chart"></div>
-        <div class="skeleton-chart"></div>
-      </div>
+  <section class="filtro-escola" aria-label="Seleção de escola">
+    <app-select
+      class="filtro-escola__escola"
+      [id]="'escola-select'"
+      label="Escola"
+      placeholder="Selecione uma escola"
+      searchPlaceholder="Buscar pelo nome, município ou INEP"
+      emptyMessage="Nenhuma escola encontrada"
+      [options]="opcoesEscola()"
+      [searchable]="true"
+      [showClear]="true"
+      [loading]="catalogo() === 'carregando'"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="escolaSelecionada()?.co_entidade ?? null"
+      (ngModelChange)="onEscolaChange($event)"
+    />
+    <app-select
+      class="filtro-escola__municipio"
+      [id]="'municipio-select'"
+      label="Município"
+      placeholder="—"
+      [options]="opcoesMunicipio()"
+      [disabled]="true"
+      [ngModel]="escolaSelecionada()?.municipio ?? null"
+    />
+  </section>
+
+  <div class="comparacao-conteudo" aria-live="polite">
+    <app-comparacao-resumo [serie]="serie()" [carregando]="carregando()" />
+
+    <p class="dica-grafico">{{ textos.dicaGrafico }}</p>
+
+    <app-comparacao-grafico
+      [serie]="serie()"
+      [carregando]="carregando()"
+      [mensagem]="mensagemGrafico()"
+      [erro]="erroGrafico()"
+      [acaoLabel]="acaoGrafico()"
+      (acao)="tentarNovamente()"
+    />
+
+    <div class="detalhes">
+      <app-composicao-indice
+        [itens]="composicao().itens"
+        [indisponivel]="composicao().indisponivel"
+      />
+
+      <section class="regras" aria-labelledby="regras-titulo">
+        <h2 id="regras-titulo">Regras metodológicas</h2>
+        <ol>
+          @for (regra of textos.regras; track regra) {
+            <li>{{ regra }}</li>
+          }
+        </ol>
+      </section>
     </div>
-  }
-
-  <div [class.content-hidden]="isLoading">
-    <section class="filtro-temporal" aria-label="Filtros da análise temporal">
-      <div class="filtro-temporal__item">
-        <label for="metrica-select">Métrica</label>
-        <select id="metrica-select" [(ngModel)]="selectedMetrica">
-          @for (m of metricas; track m.chave) {
-            <option [ngValue]="m.chave">{{ m.label }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="filtro-temporal__actions">
-        <label class="filtro-temporal__pibid">
-          <input
-            type="checkbox"
-            [checked]="selectedPibid === true"
-            (change)="onPibidChange($event)"
-          />
-          <span>Apenas PIBID</span>
-        </label>
-        <button type="button" (click)="aplicarFiltros(true)" [disabled]="isLoadingFilters">
-          @if (isLoadingFilters) {
-            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-            Aplicando...
-          } @else {
-            Aplicar filtros
-          }
-        </button>
-        <button
-          type="button"
-          class="btn-reset"
-          (click)="resetFiltros()"
-          [disabled]="isLoadingFilters"
-        >
-          Limpar
-        </button>
-      </div>
-    </section>
-
-    <app-indicadores-charts
-      [graficosAnaliseTemporal]="graficosAnaliseTemporal"
-      graficosLayout="grade"
-      (layoutChange)="onGraficosLayoutChange()"
-    ></app-indicadores-charts>
   </div>
 </div>

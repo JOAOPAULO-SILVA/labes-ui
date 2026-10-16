@@ -1,0 +1,98 @@
+:host {
+  display: grid;
+  gap: 12px;
+}
+
+.resumo-aviso {
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--sie-color-deep);
+  font-size: 0.85rem;
+  font-weight: 800;
+  text-align: center;
+}
+
+.comparacao-resumo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 12px;
+}
+
+.resumo-card {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  min-height: 112px;
+  padding: 18px;
+  border: 1px solid var(--sie-color-border);
+  border-radius: 8px;
+  background: var(--sie-color-surface);
+  box-shadow: var(--sie-shadow-sm);
+}
+
+.resumo-card__icone {
+  display: inline-grid;
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border-radius: 50%;
+  background: #eef4fd;
+  color: var(--sie-color-primary);
+}
+
+.resumo-card__conteudo {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.resumo-card__titulo {
+  color: var(--sie-color-deep);
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.resumo-card__valor {
+  color: var(--sie-color-deep);
+  font-size: 1.75rem;
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.resumo-card__valor--selo {
+  justify-self: start;
+  padding: 4px 12px;
+  border-radius: 8px;
+  background: #e3f6ee;
+  color: #12784f;
+  font-size: 1.15rem;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -300px 0;
+  }
+  100% {
+    background-position: 300px 0;
+  }
+}
+
+.skeleton-valor {
+  display: block;
+  width: 110px;
+  height: 30px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, #e8eef5 25%, #f4f7fb 50%, #e8eef5 75%);
+  background-size: 300px 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+small {
+  color: var(--sie-color-muted);
+  font-size: 0.78rem;
+}

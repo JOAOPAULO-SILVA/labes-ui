@@ -1,0 +1,34 @@
+<figure class="grafico-card" [attr.aria-busy]="carregando()">
+  <figcaption>{{ titulo() }}</figcaption>
+
+  @if (figura(); as f) {
+    <plotly-plot
+      [data]="f.data"
+      [layout]="f.layout"
+      [config]="config"
+      [useResizeHandler]="true"
+      [style]="{ position: 'relative', width: '100%', height: '440px' }"
+    ></plotly-plot>
+  } @else {
+    <div class="grafico-vazio">
+      @if (carregando()) {
+        <div class="skeleton-grafico"></div>
+        <span class="sr-only">Carregando dados da escola selecionada.</span>
+      } @else {
+        <div class="grafico-vazio__mensagem" [attr.role]="erro() ? 'alert' : null">
+          <i class="pi pi-chart-line" aria-hidden="true"></i>
+          <p>{{ mensagem() }}</p>
+          @if (acaoLabel(); as label) {
+            <button type="button" class="btn-acao" (click)="acao.emit()">{{ label }}</button>
+          }
+        </div>
+      }
+      <ul class="legenda" aria-hidden="true">
+        <li><span class="legenda__marca legenda__marca--escola"></span>{{ textos.serieEscola }}</li>
+        <li>
+          <span class="legenda__marca legenda__marca--municipio"></span>{{ textos.serieMunicipio }}
+        </li>
+      </ul>
+    </div>
+  }
+</figure>

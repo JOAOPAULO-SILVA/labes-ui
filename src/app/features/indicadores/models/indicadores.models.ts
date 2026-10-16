@@ -1,4 +1,5 @@
 import type { PlotlyFigure } from '../../../core/api/models/plotly-figure';
+import type { Observable } from 'rxjs';
 
 export interface MetricaFiltroModel {
   chave: string;
@@ -67,4 +68,20 @@ export interface LegendaItemModel {
   label: string;
   range: string;
   classe: string;
+}
+
+export interface FiltrosAnaliseTemporalModel {
+  metrica: string | null;
+  pibid: boolean | null;
+}
+
+/**
+ * Contrato comum das facades de acessibilidade, conectividade e infraestrutura
+ * usado pelo panorama da análise temporal.
+ */
+export interface FonteAnaliseTemporal {
+  listarFiltros(): Observable<{ metricas: MetricaFiltroModel[] }>;
+  listarAnaliseTemporal(params: FiltrosAnaliseTemporalModel): Observable<{
+    listaGraficos: GraficoListaModel[];
+  }>;
 }
