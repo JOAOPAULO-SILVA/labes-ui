@@ -1,55 +1,66 @@
-import { HttpErrorResponse, provideHttpClient } from '@angular/common/http';
+import { provideHttpClient } from '@angular/common/http';
+import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { firstValueFrom } from 'rxjs';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { ComparacaoInfraestruturaResponse } from '../../../core/api/models/comparacao-infraestrutura-response';
-import { InfraestruturaService } from '../../../core/api/services/infraestrutura.service';
+import { ApiConfiguration } from '../../../core/api/api-configuration';
 import comparacaoMock from '../mocks/comparacao-escola-municipio.json';
 import { InfraestruturaFacade } from './infraestrutura.facade';
 
+const ROOT = 'http://api.teste';
+const urlComparacao = (co: number) =>
+  `${ROOT}/infraestrutura/analise-temporal/escolas/${co}/comparacao-municipio`;
+
 describe('InfraestruturaFacade.obterComparacaoEscolaMunicipio', () => {
-  const obterComparacao = vi.fn();
   let facade: InfraestruturaFacade;
+  let http: HttpTestingController;
 
   beforeEach(() => {
-    obterComparacao.mockReset();
     TestBed.configureTestingModule({
-      providers: [
-        provideHttpClient(),
-        {
-          provide: InfraestruturaService,
-          useValue: {
-            getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet:
-              obterComparacao,
-          },
-        },
-      ],
+      providers: [provideHttpClient(), provideHttpClientTesting()],
     });
+    TestBed.inject(ApiConfiguration).rootUrl = ROOT;
     facade = TestBed.inject(InfraestruturaFacade);
+    http = TestBed.inject(HttpTestingController);
   });
 
-  it('consome a rota com o co_entidade e devolve o modelo', async () => {
-    obterComparacao.mockResolvedValue(comparacaoMock as ComparacaoInfraestruturaResponse);
+  afterEach(() => http.verify());
 
-    const modelo = await firstValueFrom(facade.obterComparacaoEscolaMunicipio(15012345));
+  it('consome a rota nova com o co_entidade e devolve o modelo', async () => {
+    const resultado = firstValueFrom(facade.obterComparacaoEscolaMunicipio(15012345));
 
-    expect(obterComparacao).toHaveBeenCalledWith({ co_entidade: 15012345 });
+    const req = http.expectOne(urlComparacao(15012345));
+    expect(req.request.method).toBe('GET');
+    req.flush(comparacaoMock);
+
+    const modelo = await resultado;
     expect(modelo.escola.co_entidade).toBe(15012345);
     expect(modelo.serie).toHaveLength(4);
   });
 
   it('propaga o erro em vez de devolver resposta vazia', async () => {
-    obterComparacao.mockRejectedValue(
-      new HttpErrorResponse({
-        status: 404,
-        error: { code: 'not_found', message: 'Escola não encontrada.' },
-      }),
-    );
+    const resultado = firstValueFrom(facade.obterComparacaoEscolaMunicipio(15099999));
 
-    await expect(firstValueFrom(facade.obterComparacaoEscolaMunicipio(15099999))).rejects.toEqual({
+    http
+      .expectOne(urlComparacao(15099999))
+      .flush(
+        { code: 'not_found', message: 'Escola não encontrada.' },
+        { status: 404, statusText: 'Not Found' },
+      );
+
+    await expect(resultado).rejects.toEqual({
       codigo: 'not_found',
       mensagem: 'Escola não encontrada.',
     });
+  });
+
+  it('cancela a requisição HTTP ao cancelar a inscrição', () => {
+    const inscricao = facade.obterComparacaoEscolaMunicipio(15012345).subscribe();
+    const req = http.expectOne(urlComparacao(15012345));
+
+    inscricao.unsubscribe();
+
+    expect(req.cancelled).toBe(true);
   });
 });

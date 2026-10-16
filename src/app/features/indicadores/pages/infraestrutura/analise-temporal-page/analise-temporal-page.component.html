@@ -1,67 +1,137 @@
 <div class="analise-temporal-page">
   <header class="dashboard-header">
     <h1>Infraestrutura &middot; Análise Temporal</h1>
+    <p>
+      Compare a evolução do índice de infraestrutura de uma escola com a média do seu município.
+    </p>
   </header>
 
-  @if (isLoading) {
-    <div class="skeleton-page">
-      <div class="skeleton-filter-panel">
+  @switch (catalogo()) {
+    @case ('carregando') {
+      <div class="skeleton-filter-panel" aria-busy="true" aria-label="Carregando escolas">
         <div class="skeleton-bar skeleton-bar--title"></div>
-        <div class="skeleton-filter-row">
-          <div class="skeleton-bar"></div>
-          <div class="skeleton-bar skeleton-bar--sm"></div>
+        <div class="skeleton-bar"></div>
+      </div>
+    }
+    @case ('erro') {
+      <div class="estado-card estado-card--erro" role="alert">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <div>
+          <strong>Não foi possível carregar a lista de escolas.</strong>
+          <p>Verifique sua conexão e tente novamente.</p>
         </div>
+        <button type="button" class="btn-primario" (click)="carregarCatalogo()">
+          Tentar novamente
+        </button>
       </div>
-      <div class="skeleton-charts">
-        <div class="skeleton-chart"></div>
-        <div class="skeleton-chart"></div>
-      </div>
-    </div>
+    }
+    @default {
+      <app-escola-busca
+        [escolas]="escolas()"
+        [selecionada]="escolaSelecionada()"
+        (selecionar)="selecionar($event)"
+        (limpar)="limpar()"
+      />
+    }
   }
 
-  <div [class.content-hidden]="isLoading">
-    <section class="filtro-temporal" aria-label="Filtros da análise temporal">
-      <div class="filtro-temporal__item">
-        <label for="metrica-select">Métrica</label>
-        <select id="metrica-select" [(ngModel)]="selectedMetrica">
-          @for (m of metricas; track m.chave) {
-            <option [ngValue]="m.chave">{{ m.label }}</option>
-          }
-        </select>
-      </div>
+  <div class="comparacao-conteudo" aria-live="polite">
+    @switch (estado().tipo) {
+      @case ('inicial') {
+        @if (catalogo() === 'pronto') {
+          <div class="estado-card">
+            <i class="pi pi-search" aria-hidden="true"></i>
+            <div>
+              <strong>Selecione uma escola para começar.</strong>
+              <p>
+                Busque pelo nome ou código INEP. A série histórica aparece aqui assim que a escola
+                for selecionada.
+              </p>
+            </div>
+          </div>
+        }
+      }
 
-      <div class="filtro-temporal__actions">
-        <label class="filtro-temporal__pibid">
-          <input
-            type="checkbox"
-            [checked]="selectedPibid === true"
-            (change)="onPibidChange($event)"
-          />
-          <span>Apenas PIBID</span>
-        </label>
-        <button type="button" (click)="aplicarFiltros(true)" [disabled]="isLoadingFilters">
-          @if (isLoadingFilters) {
-            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-            Aplicando...
-          } @else {
-            Aplicar filtros
-          }
-        </button>
-        <button
-          type="button"
-          class="btn-reset"
-          (click)="resetFiltros()"
-          [disabled]="isLoadingFilters"
-        >
-          Limpar
-        </button>
-      </div>
-    </section>
+      @case ('carregando') {
+        <div class="skeleton-page" aria-busy="true">
+          <span class="sr-only">Carregando dados da escola selecionada.</span>
+          <div class="skeleton-cards">
+            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+              <div class="skeleton-card"></div>
+            }
+          </div>
+          <div class="skeleton-chart"></div>
+        </div>
+      }
 
-    <app-indicadores-charts
-      [graficosAnaliseTemporal]="graficosAnaliseTemporal"
-      graficosLayout="grade"
-      (layoutChange)="onGraficosLayoutChange()"
-    ></app-indicadores-charts>
+      @case ('erro') {
+        @if (estado(); as e) {
+          @if (e.tipo === 'erro') {
+            <div class="estado-card estado-card--erro" role="alert">
+              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+              <div>
+                <strong>Não foi possível carregar a comparação.</strong>
+                <p>{{ e.erro.mensagem }}</p>
+              </div>
+              @if (e.erro.codigo !== 'not_found' && e.erro.codigo !== 'validation_error') {
+                <button type="button" class="btn-primario" (click)="tentarNovamente()">
+                  Tentar novamente
+                </button>
+              }
+            </div>
+          }
+        }
+      }
+
+      @case ('sucesso') {
+        @if (estado(); as e) {
+          @if (e.tipo === 'sucesso') {
+            @if (e.classificacao === 'sem_historico') {
+              <div class="estado-card estado-card--aviso">
+                <i class="pi pi-calendar-times" aria-hidden="true"></i>
+                <div>
+                  <strong>Esta escola não tem histórico de infraestrutura.</strong>
+                  <p>
+                    Não há dados de {{ e.comparacao.escola.no_entidade }} no Censo Escolar entre
+                    {{ e.serie.anos[0] }} e {{ e.serie.anos[e.serie.anos.length - 1] }}. Selecione
+                    outra escola.
+                  </p>
+                </div>
+              </div>
+            } @else {
+              @if (e.classificacao === 'sem_pares') {
+                <div class="estado-card estado-card--aviso">
+                  <i class="pi pi-info-circle" aria-hidden="true"></i>
+                  <div>
+                    <strong>Sem média municipal para comparar.</strong>
+                    <p>
+                      Nenhuma outra escola de {{ e.comparacao.municipio.no_municipio }} tem dados
+                      válidos no período. O gráfico mostra apenas a escola.
+                    </p>
+                  </div>
+                </div>
+              }
+
+              <app-comparacao-resumo [serie]="e.serie" />
+              <app-comparacao-grafico
+                [serie]="e.serie"
+                [titulo]="
+                  e.comparacao.escola.no_entidade +
+                  ' × Média de ' +
+                  e.comparacao.municipio.no_municipio
+                "
+              />
+            }
+
+            @if (!e.comparacao.metodologia.homologada) {
+              <p class="metodologia-nota">
+                <i class="pi pi-info-circle" aria-hidden="true"></i>
+                {{ e.comparacao.metodologia.observacao }}
+              </p>
+            }
+          }
+        }
+      }
+    }
   </div>
 </div>

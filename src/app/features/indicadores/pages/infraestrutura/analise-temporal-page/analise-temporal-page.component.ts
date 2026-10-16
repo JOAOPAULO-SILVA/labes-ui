@@ -1,31 +1,48 @@
 import {
   ChangeDetectionStrategy,
-  ChangeDetectorRef,
   Component,
   DestroyRef,
   OnInit,
   inject,
+  signal,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Observable, Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
 
 import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
-import { AppToastService } from '../../../../../shared/ui/toast/app-toast.service';
-import { PlotlyFigure } from '../../../../../core/api/models/plotly-figure';
+import { EscolaBuscaComponent } from '../../../components/escola-busca/escola-busca.component';
+import { ComparacaoGraficoComponent } from '../../../components/comparacao-grafico/comparacao-grafico.component';
+import { ComparacaoResumoComponent } from '../../../components/comparacao-resumo/comparacao-resumo.component';
+import { prepararSerieGraficoComparacao } from '../../../mappers/infraestrutura.mapper';
 import {
-  IndicadoresChartsComponent,
-  GraficoApresentacao,
-} from '../../../components/charts/indicadores-charts.component';
+  ClassificacaoSerieComparacao,
+  classificarSerieComparacao,
+} from '../../../mappers/comparacao-grafico.mapper';
+import {
+  ComparacaoEscolaMunicipioModel,
+  ErroComparacaoMunicipioModel,
+  EscolaBuscaModel,
+  SerieGraficoComparacaoModel,
+} from '../../../models/infraestrutura.models';
 
-type MetricaFiltroModel = { chave: string; label: string };
+type EstadoComparacao =
+  | { tipo: 'inicial' }
+  | { tipo: 'carregando'; escola: EscolaBuscaModel }
+  | { tipo: 'erro'; escola: EscolaBuscaModel; erro: ErroComparacaoMunicipioModel }
+  | {
+      tipo: 'sucesso';
+      escola: EscolaBuscaModel;
+      comparacao: ComparacaoEscolaMunicipioModel;
+      serie: SerieGraficoComparacaoModel;
+      classificacao: ClassificacaoSerieComparacao;
+    };
 
-const METRICA_PADRAO = 'in_agua_potavel';
+type EstadoCatalogo = 'carregando' | 'pronto' | 'erro';
 
 @Component({
   selector: 'app-analise-temporal-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, IndicadoresChartsComponent],
+  imports: [EscolaBuscaComponent, ComparacaoGraficoComponent, ComparacaoResumoComponent],
   templateUrl: './analise-temporal-page.component.html',
   styleUrl: './analise-temporal-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,122 +50,73 @@ const METRICA_PADRAO = 'in_agua_potavel';
 export class AnaliseTemporalPageComponent implements OnInit {
   private readonly facade = inject(InfraestruturaFacade);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly cd = inject(ChangeDetectorRef);
-  private readonly toast = inject(AppToastService);
 
-  private pendingRequests = 0;
-  private showToastOnComplete = false;
+  /** Cada nova seleção cancela a requisição anterior (switchMap). */
+  private readonly selecao$ = new Subject<EscolaBuscaModel | null>();
 
-  protected metricas: MetricaFiltroModel[] = [];
-  protected graficosAnaliseTemporal: GraficoApresentacao[] = [];
-
-  protected selectedMetrica: string | null = METRICA_PADRAO;
-  protected selectedPibid: boolean | null = null;
-
-  protected isLoading = true;
-  protected isLoadingFilters = false;
+  protected readonly escolas = signal<EscolaBuscaModel[]>([]);
+  protected readonly catalogo = signal<EstadoCatalogo>('carregando');
+  protected readonly escolaSelecionada = signal<EscolaBuscaModel | null>(null);
+  protected readonly estado = signal<EstadoComparacao>({ tipo: 'inicial' });
 
   ngOnInit(): void {
+    this.carregarCatalogo();
+
+    this.selecao$
+      .pipe(
+        switchMap((escola) =>
+          escola ? this.carregarComparacao(escola) : of({ tipo: 'inicial' as const }),
+        ),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((estado) => this.estado.set(estado));
+  }
+
+  protected carregarCatalogo(): void {
+    this.catalogo.set('carregando');
     this.facade
-      .listarFiltros()
+      .listarEscolasParaBusca()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((filtros) => {
-        this.metricas = (filtros.metricas ?? []).map((m) => ({
-          chave: String(m.chave),
-          label: String(m.label),
-        }));
-        this.isLoading = false;
-        this.loadAnaliseTemporal();
-        this.cd.markForCheck();
+      .subscribe({
+        next: (escolas) => {
+          this.escolas.set(escolas);
+          this.catalogo.set('pronto');
+        },
+        error: () => this.catalogo.set('erro'),
       });
   }
 
-  protected aplicarFiltros(userAction = false): void {
-    this.showToastOnComplete = userAction;
-    this.loadAnaliseTemporal();
+  protected selecionar(escola: EscolaBuscaModel): void {
+    this.escolaSelecionada.set(escola);
+    this.selecao$.next(escola);
   }
 
-  protected resetFiltros(): void {
-    this.selectedMetrica = METRICA_PADRAO;
-    this.selectedPibid = null;
-    this.cd.markForCheck();
-    this.aplicarFiltros();
+  protected limpar(): void {
+    this.escolaSelecionada.set(null);
+    this.selecao$.next(null);
   }
 
-  protected onGraficosLayoutChange(): void {
-    this.loadAnaliseTemporal();
+  protected tentarNovamente(): void {
+    const escola = this.escolaSelecionada();
+    if (escola) this.selecao$.next(escola);
   }
 
-  protected onPibidChange(event: Event): void {
-    const checked = (event.target as HTMLInputElement).checked;
-    this.selectedPibid = checked ? true : null;
-  }
-
-  private onLoadStart(): void {
-    this.pendingRequests++;
-    this.isLoadingFilters = true;
-    this.cd.markForCheck();
-  }
-
-  private onLoadEnd(): void {
-    this.pendingRequests = Math.max(0, this.pendingRequests - 1);
-    if (this.pendingRequests === 0) {
-      this.isLoadingFilters = false;
-      if (this.showToastOnComplete) {
-        this.toast.success('Filtros aplicados com sucesso');
-        this.showToastOnComplete = false;
-      }
-      this.cd.markForCheck();
-    }
-  }
-
-  private loadAnaliseTemporal(): void {
-    this.onLoadStart();
-    this.facade
-      .listarAnaliseTemporal({ metrica: this.selectedMetrica, pibid: this.selectedPibid })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe((analise) => {
-        this.graficosAnaliseTemporal = analise.listaGraficos.map((g) => ({
-          chave: g.chave,
-          titulo: g.titulo,
-          tipo: g.tipo,
-          plotly: this.normalizarPlotly(g.plotly),
-        }));
-        this.onLoadEnd();
-      });
-  }
-
-  private normalizarPlotly(figure: PlotlyFigure): PlotlyFigure {
-    const layout = { ...(figure.layout ?? {}) };
-    const originalMargin = (layout['margin'] ?? {}) as Record<string, unknown>;
-    const hasIndicator = (figure.data ?? []).some((t) => t['type'] === 'indicator');
-    const originalTopMargin = Number(originalMargin['t'] ?? 24);
-    delete layout['title'];
-    delete layout['margin'];
-    delete layout['height'];
-    delete layout['width'];
-    return {
-      ...figure,
-      layout: {
-        ...layout,
-        autosize: true,
-        paper_bgcolor: 'rgba(0,0,0,0)',
-        plot_bgcolor: 'rgba(0,0,0,0)',
-        font: {
-          family: "Inter, 'Segoe UI', Roboto, Arial, sans-serif",
-          color: '#26395f',
-          size: 12,
-          ...(layout['font'] ?? {}),
-        },
-        margin: {
-          ...(originalMargin ?? {}),
-          l: hasIndicator ? 20 : 58,
-          r: 18,
-          t: hasIndicator ? 12 : Math.min(originalTopMargin, 32),
-          b: hasIndicator ? 24 : 58,
-          pad: 0,
-        },
-      },
-    };
+  private carregarComparacao(escola: EscolaBuscaModel): Observable<EstadoComparacao> {
+    return this.facade.obterComparacaoEscolaMunicipio(escola.co_entidade).pipe(
+      map((comparacao): EstadoComparacao => {
+        const serie = prepararSerieGraficoComparacao(comparacao.serie, comparacao.metodologia.anos);
+        return {
+          tipo: 'sucesso',
+          escola,
+          comparacao,
+          serie,
+          classificacao: classificarSerieComparacao(serie),
+        };
+      }),
+      catchError((erro: ErroComparacaoMunicipioModel) =>
+        of<EstadoComparacao>({ tipo: 'erro', escola, erro }),
+      ),
+      startWith<EstadoComparacao>({ tipo: 'carregando', escola }),
+    );
   }
 }

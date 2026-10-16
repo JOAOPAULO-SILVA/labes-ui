@@ -10,6 +10,7 @@ import type {
   GetPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet$Params,
   GetPainelInfraestruturaInfraestruturaPainelGet$Params,
 } from '../../../core/api';
+import { getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet } from '../../../core/api/functions';
 import {
   AnaliseTemporalModel,
   ComparacaoEscolaMunicipioModel,
@@ -214,14 +215,16 @@ export class InfraestruturaFacade {
    * Série 2022–2025 da escola comparada à média municipal.
    * Diferente dos demais métodos, não troca falhas por resposta vazia:
    * o erro é propagado como `ErroComparacaoMunicipioModel` para a página exibi-lo.
+   * Usa a função gerada (Observable) em vez do serviço (Promise) para que cancelar a
+   * inscrição — ao trocar de escola — também cancele a requisição HTTP em andamento.
    */
   obterComparacaoEscolaMunicipio(coEntidade: number): Observable<ComparacaoEscolaMunicipioModel> {
-    return from(
-      this.api.getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(
-        { co_entidade: coEntidade },
-      ),
+    return getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(
+      this.http,
+      this.api.rootUrl,
+      { co_entidade: coEntidade },
     ).pipe(
-      map(mapComparacaoEscolaMunicipioResponseToModel),
+      map((resposta) => mapComparacaoEscolaMunicipioResponseToModel(resposta.body)),
       catchError((erro: unknown) => throwError(() => mapComparacaoEscolaMunicipioErro(erro))),
     );
   }
