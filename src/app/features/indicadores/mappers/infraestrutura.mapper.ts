@@ -347,7 +347,7 @@ export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoM
     corpo && typeof corpo === 'object' && typeof corpo.code === 'string' ? corpo.code : null;
 
   let codigo: CodigoErroComparacaoMunicipioModel;
-  if (codigoApi && codigoApi in MENSAGENS_ERRO_COMPARACAO) {
+  if (codigoApi && Object.hasOwn(MENSAGENS_ERRO_COMPARACAO, codigoApi)) {
     codigo = codigoApi as CodigoErroComparacaoMunicipioModel;
   } else if (status === 0) {
     codigo = 'network_error';
@@ -429,25 +429,32 @@ export function mapEscolasParaBusca(entradas: EscolaGeoEntryModel[]): EscolaBusc
     .sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR'));
 }
 
+export interface ResultadoBuscaEscolasModel {
+  itens: EscolaBuscaModel[];
+  /** Total de escolas que correspondem ao termo, mesmo além do limite exibido. */
+  total: number;
+}
+
 /** Filtra por nome (sem diferenciar acentos/maiúsculas) ou pelo código INEP. */
 export function filtrarEscolasBusca(
   escolas: EscolaBuscaModel[],
   termo: string,
   limite = 8,
-): EscolaBuscaModel[] {
+): ResultadoBuscaEscolasModel {
   const termoNormalizado = normalizarTexto(termo);
-  if (!termoNormalizado) return [];
+  if (!termoNormalizado) return { itens: [], total: 0 };
 
   const somenteDigitos = /^\d+$/.test(termoNormalizado);
-  const resultado: EscolaBuscaModel[] = [];
+  const itens: EscolaBuscaModel[] = [];
+  let total = 0;
   for (const escola of escolas) {
     const corresponde = somenteDigitos
       ? String(escola.co_entidade).startsWith(termoNormalizado)
       : normalizarTexto(escola.nome).includes(termoNormalizado);
     if (corresponde) {
-      resultado.push(escola);
-      if (resultado.length >= limite) break;
+      total++;
+      if (itens.length < limite) itens.push(escola);
     }
   }
-  return resultado;
+  return { itens, total };
 }

@@ -80,6 +80,33 @@ describe('EscolaBuscaComponent', () => {
     expect(limpou).toBe(true);
   });
 
+  it('avisa quando há mais resultados do que os exibidos', () => {
+    const muitas = Array.from({ length: 20 }, (_, i) => ({
+      ...ESCOLAS[0],
+      co_entidade: 15000000 + i,
+      nome: `Escola ${i}`,
+    }));
+    fixture.componentRef.setInput('escolas', muitas);
+    digitar('escola');
+
+    expect(el.querySelectorAll('.search-result-item').length).toBe(8);
+    const status = el.querySelector('#escola-busca-status') as HTMLElement;
+    expect(status.textContent).toContain('Mostrando 8 de 20 escolas');
+    expect(status.classList).not.toContain('sr-only');
+  });
+
+  it('anuncia a quantidade de resultados sem semântica de combobox', () => {
+    digitar('dom pedro');
+    const input = el.querySelector('input') as HTMLInputElement;
+    const status = el.querySelector('#escola-busca-status') as HTMLElement;
+
+    expect(input.getAttribute('role')).toBeNull();
+    expect(input.getAttribute('aria-describedby')).toBe('escola-busca-status');
+    expect(status.getAttribute('aria-live')).toBe('polite');
+    expect(status.textContent).toContain('1 escola encontrada.');
+    expect(el.querySelector('[role="listbox"], [role="option"]')).toBeNull();
+  });
+
   it('avisa quando nenhuma escola corresponde', () => {
     digitar('inexistente');
     expect(el.querySelector('.empty-results')?.textContent).toContain('Nenhuma escola encontrada');

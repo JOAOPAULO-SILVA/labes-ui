@@ -55,6 +55,40 @@ describe('InfraestruturaFacade.obterComparacaoEscolaMunicipio', () => {
     });
   });
 
+  it('tenta carregar o catálogo de escolas de novo depois de uma falha', async () => {
+    const primeira = firstValueFrom(facade.listarEscolasParaBusca());
+    http
+      .expectOne('assets/geojson/escolas.geojson')
+      .flush(null, { status: 500, statusText: 'Server Error' });
+    await expect(primeira).rejects.toBeTruthy();
+
+    const segunda = firstValueFrom(facade.listarEscolasParaBusca());
+    http.expectOne('assets/geojson/escolas.geojson').flush({
+      type: 'FeatureCollection',
+      features: [
+        {
+          type: 'Feature',
+          geometry: { type: 'Point', coordinates: [-48.5, -1.4] },
+          properties: {
+            co_entidade: '15012345',
+            no_entidade: 'EMEF Exemplo',
+            no_municipio: 'Belém',
+          },
+        },
+      ],
+    });
+
+    expect(await segunda).toEqual([
+      {
+        co_entidade: 15012345,
+        nome: 'EMEF Exemplo',
+        municipio: 'Belém',
+        dependencia: null,
+        localizacao: null,
+      },
+    ]);
+  });
+
   it('cancela a requisição HTTP ao cancelar a inscrição', () => {
     const inscricao = facade.obterComparacaoEscolaMunicipio(15012345).subscribe();
     const req = http.expectOne(urlComparacao(15012345));

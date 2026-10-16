@@ -84,6 +84,11 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
     expect(erro.mensagem).not.toBe('');
   });
 
+  it('ignora códigos desconhecidos da API, inclusive chaves herdadas', () => {
+    const erro = mapComparacaoEscolaMunicipioErro(httpErro(404, { code: 'constructor' }));
+    expect(erro).toEqual({ codigo: 'not_found', mensagem: 'Escola não encontrada.' });
+  });
+
   it('trata erros que não são HTTP como erro interno', () => {
     expect(mapComparacaoEscolaMunicipioErro(new Error('boom')).codigo).toBe('internal_error');
   });

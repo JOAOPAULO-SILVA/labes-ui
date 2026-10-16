@@ -84,6 +84,10 @@ export class InfraestruturaFacade {
 
         return new Map(entries.map((entry) => [entry.co_entidade, entry]));
       });
+      // Não mantém uma falha em cache: a próxima chamada tenta carregar de novo.
+      this.escolasGeoMap$.catch(() => {
+        this.escolasGeoMap$ = null;
+      });
     }
     return this.escolasGeoMap$;
   }

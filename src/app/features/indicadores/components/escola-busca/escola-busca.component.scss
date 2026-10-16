@@ -136,3 +136,23 @@
     width: 100%;
   }
 }
+
+.escola-busca__status {
+  margin: 0;
+  color: var(--sie-color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+.escola-busca__status--aviso {
+  color: #8a6100;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -23,10 +23,21 @@ export class EscolaBuscaComponent {
   readonly limpar = output<void>();
 
   protected readonly termo = signal('');
-  protected readonly resultados = computed(() =>
-    filtrarEscolasBusca(this.escolas(), this.termo(), 8),
-  );
+  private readonly busca = computed(() => filtrarEscolasBusca(this.escolas(), this.termo(), 8));
+  protected readonly resultados = computed(() => this.busca().itens);
   protected readonly buscou = computed(() => this.termo().trim().length > 0);
+
+  /** Resumo anunciado a leitores de tela e exibido quando a lista é cortada. */
+  protected readonly statusBusca = computed(() => {
+    const { itens, total } = this.busca();
+    if (!this.buscou()) return '';
+    if (total === 0) return `Nenhuma escola encontrada para "${this.termo().trim()}".`;
+    if (total > itens.length) {
+      return `Mostrando ${itens.length} de ${total} escolas. Refine a busca para encontrar a sua.`;
+    }
+    return total === 1 ? '1 escola encontrada.' : `${total} escolas encontradas.`;
+  });
+  protected readonly listaCortada = computed(() => this.busca().total > this.busca().itens.length);
 
   protected onTermoChange(event: Event): void {
     this.termo.set((event.target as HTMLInputElement).value);
