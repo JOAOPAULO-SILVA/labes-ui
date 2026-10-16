@@ -2,30 +2,49 @@ import { PlotlyFigure } from '../../../core/api/models/plotly-figure';
 import {
   PontoComparacaoMunicipioModel,
   SerieGraficoComparacaoModel,
-  SituacaoComparacaoMunicipioModel,
 } from '../models/infraestrutura.models';
 
-/** Textos exibidos no gráfico, no tooltip e no resumo. Centralizados para revisão. */
+/**
+ * Textos do gráfico, do tooltip, do resumo e dos estados.
+ * Fonte: protótipo "v1 escolas x municipios" (Figma) e contrato BE-05 v2.
+ */
 export const TEXTOS_COMPARACAO = {
-  serieEscola: 'Escola',
-  serieMunicipio: 'Média municipal',
-  eixoY: 'Índice (%)',
-  eixoX: 'Ano do Censo Escolar',
-  semDado: '—',
+  titulo: 'Infraestrutura • Análise Temporal',
+  subtitulo:
+    'Compare o desempenho da escola selecionada com a média das demais escolas do mesmo município ao longo do tempo.',
+  tituloGrafico: 'Percentual de recursos de infraestrutura disponíveis — evolução temporal',
+  dicaGrafico:
+    'Passe o cursor sobre os pontos da linha do gráfico para visualizar o resumo detalhado daquele ano.',
+  serieEscola: 'Escola selecionada',
+  serieMunicipio: 'Média das demais escolas do município',
+  eixoY: 'Percentual de recursos',
+  eixoX: 'Ano',
+  semDado: 'Sem dados',
+  resumoDoAno: (ano: number) =>
+    `Os cartões abaixo indicam um resumo de ${ano} (Último ano disponível).`,
   resumo: {
-    ano: 'Ano',
-    indiceEscola: 'Índice da escola',
-    mediaMunicipal: 'Média municipal',
+    escola: 'Escola selecionada',
+    municipio: 'Demais escolas do município',
     diferenca: 'Diferença',
-    pares: 'Pares válidos',
     indicadores: 'Indicadores válidos',
   },
-  situacao: {
-    disponivel: '',
-    escola_sem_dados: 'A escola não tem dados neste ano.',
-    sem_pares_validos: 'Nenhuma outra escola do município tem dados válidos neste ano.',
-    sem_pares_municipio: 'Não há outras escolas no município neste ano.',
-  } satisfies Record<SituacaoComparacaoMunicipioModel, string>,
+  tooltip: {
+    ano: 'Ano',
+    escola: 'Escola selecionada',
+    municipio: 'Demais escolas do município',
+    diferenca: 'Diferença',
+  },
+  regras: [
+    'Sim = 1 | Não = 0 | Sem informação = excluída do cálculo.',
+    'A referência municipal exclui a escola selecionada.',
+    'Todos os indicadores possuem o mesmo peso.',
+    'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
+    'Esta análise utiliza metodologia de cálculo em caráter provisório e pendente de homologação.',
+  ],
+  ressalva:
+    'Metodologia de cálculo provisória e não homologada. O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
+  semHistorico:
+    'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
 } as const;
 
 const CORES = {
@@ -46,44 +65,46 @@ export function formatarPercentual(valor: number | null): string {
 
 export function formatarPontosPercentuais(valor: number | null): string {
   if (valor === null) return TEXTOS_COMPARACAO.semDado;
-  const sinal = valor > 0 ? '+' : valor < 0 ? '−' : '';
-  return `${sinal}${formatoNumero.format(Math.abs(valor))} p.p.`;
+  const sinal = valor > 0 ? '+' : '';
+  return `${sinal}${formatoNumero.format(valor)} p.p.`;
 }
 
-export function formatarParcial(parte: number, total: number): string {
-  return `${parte} de ${total}`;
-}
-
-/** Linhas do tooltip de um ano, na mesma ordem e com os mesmos rótulos do resumo. */
+/** Linhas do tooltip de um ano, no formato do protótipo. */
 export function montarLinhasTooltip(ponto: PontoComparacaoMunicipioModel): string[] {
-  const r = TEXTOS_COMPARACAO.resumo;
-  const linhas = [
-    `<b>${r.ano} ${ponto.ano}</b>`,
-    `${r.indiceEscola}: ${formatarPercentual(ponto.indice_escola_percentual)}`,
-    `${r.mediaMunicipal}: ${formatarPercentual(ponto.media_municipal_percentual)}`,
-    `${r.diferenca}: ${formatarPontosPercentuais(ponto.diferenca_pontos_percentuais)}`,
-    `${r.pares}: ${formatarParcial(ponto.quantidade_pares_validos, ponto.denominador_pares)}`,
-    `${r.indicadores}: ${formatarParcial(ponto.quantidade_indicadores_validos, ponto.total_indicadores)}`,
+  const t = TEXTOS_COMPARACAO.tooltip;
+  return [
+    `<b>${t.ano} ${ponto.ano}</b>`,
+    `${t.escola}: <b>${formatarPercentual(ponto.indice_escola_percentual)}</b> (${ponto.quantidade_indicadores_validos} indicadores válidos)`,
+    `${t.municipio}: <b>${formatarPercentual(ponto.media_municipal_percentual)}</b> (${ponto.quantidade_pares_validos} pares)`,
+    `${t.diferenca}: <b>${formatarPontosPercentuais(ponto.diferenca_pontos_percentuais)}</b>`,
   ];
-  const aviso = TEXTOS_COMPARACAO.situacao[ponto.situacao];
-  return aviso ? [...linhas, `<i>${aviso}</i>`] : linhas;
 }
 
 /**
  * Figura Plotly Escola × Média municipal: duas linhas identificadas, eixo de 0% a 100%,
- * anos crescentes e `connectgaps: false` para não ligar valores separados por lacunas.
+ * anos crescentes, rótulos nos pontos e `connectgaps: false` para não ligar lacunas.
  */
 export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): PlotlyFigure {
   const tooltips = serie.pontos.map((ponto) => montarLinhasTooltip(ponto).join('<br>'));
+  const rotulos = (valores: (number | null)[]) =>
+    valores.map((v) => (v === null ? '' : formatarPercentual(v)));
 
-  const linha = (nome: string, y: (number | null)[], cor: string, tracejada: boolean) => ({
+  const linha = (
+    nome: string,
+    y: (number | null)[],
+    cor: string,
+    posicaoRotulo: 'top center' | 'bottom center',
+  ) => ({
     type: 'scatter',
-    mode: 'lines+markers',
+    mode: 'lines+markers+text',
     name: nome,
     x: serie.anos,
     y,
+    text: rotulos(y),
+    textposition: posicaoRotulo,
+    textfont: { color: cor, size: 11 },
     connectgaps: false,
-    line: { color: cor, width: 3, dash: tracejada ? 'dash' : 'solid' },
+    line: { color: cor, width: 3 },
     marker: { color: cor, size: 9 },
     customdata: tooltips,
     hovertemplate: '%{customdata}<extra></extra>',
@@ -91,8 +112,8 @@ export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): Plot
 
   return {
     data: [
-      linha(TEXTOS_COMPARACAO.serieEscola, serie.escola, CORES.escola, false),
-      linha(TEXTOS_COMPARACAO.serieMunicipio, serie.mediaMunicipal, CORES.municipio, true),
+      linha(TEXTOS_COMPARACAO.serieEscola, serie.escola, CORES.escola, 'bottom center'),
+      linha(TEXTOS_COMPARACAO.serieMunicipio, serie.mediaMunicipal, CORES.municipio, 'top center'),
     ],
     layout: {
       autosize: true,
@@ -103,10 +124,10 @@ export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): Plot
         color: CORES.texto,
         size: 12,
       },
-      margin: { l: 56, r: 18, t: 16, b: 64, pad: 0 },
+      margin: { l: 56, r: 18, t: 16, b: 96, pad: 0 },
       hovermode: 'closest',
       hoverlabel: { bgcolor: '#ffffff', bordercolor: '#cfdbea', font: { color: CORES.texto } },
-      legend: { orientation: 'h', x: 0, y: 1.12, xanchor: 'left' },
+      legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.28 },
       xaxis: {
         title: { text: TEXTOS_COMPARACAO.eixoX },
         tickmode: 'array',
@@ -131,46 +152,58 @@ export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): Plot
   };
 }
 
+/** Último ano em que a escola tem índice; sem nenhum, o último ano da série. */
+export function selecionarPontoResumo(
+  serie: SerieGraficoComparacaoModel,
+): PontoComparacaoMunicipioModel | null {
+  const comDados = serie.pontos.filter((p) => p.indice_escola_percentual !== null);
+  return comDados.at(-1) ?? serie.pontos.at(-1) ?? null;
+}
+
+export type TomResumoModel = 'neutro' | 'positivo' | 'negativo';
+
 export interface ItemResumoComparacaoModel {
   titulo: string;
   valor: string;
   descricao?: string;
+  icone: string;
+  tom?: TomResumoModel;
 }
 
-/** Cartões do resumo, sempre a partir do último ano da série. */
+/** Os quatro cartões do protótipo, a partir do último ano disponível. */
 export function montarResumoComparacao(
   serie: SerieGraficoComparacaoModel,
 ): ItemResumoComparacaoModel[] {
-  const ponto = serie.pontos.at(-1);
+  const ponto = selecionarPontoResumo(serie);
   if (!ponto) return [];
 
   const r = TEXTOS_COMPARACAO.resumo;
-  const aviso = TEXTOS_COMPARACAO.situacao[ponto.situacao] || undefined;
+  const diferenca = ponto.diferenca_pontos_percentuais;
 
   return [
-    { titulo: r.ano, valor: String(ponto.ano), descricao: aviso },
     {
-      titulo: r.indiceEscola,
+      titulo: r.escola,
       valor: formatarPercentual(ponto.indice_escola_percentual),
+      descricao: `${ponto.quantidade_indicadores_presentes} de ${ponto.total_indicadores} recursos disponíveis`,
+      icone: 'pi-building',
     },
     {
-      titulo: r.mediaMunicipal,
+      titulo: r.municipio,
       valor: formatarPercentual(ponto.media_municipal_percentual),
+      descricao: `${ponto.quantidade_pares_validos} escolas na referência`,
+      icone: 'pi-users',
     },
     {
       titulo: r.diferenca,
-      valor: formatarPontosPercentuais(ponto.diferenca_pontos_percentuais),
-      descricao: 'Índice da escola menos a média municipal.',
-    },
-    {
-      titulo: r.pares,
-      valor: formatarParcial(ponto.quantidade_pares_validos, ponto.denominador_pares),
-      descricao: 'Outras escolas do município usadas na média.',
+      valor: formatarPontosPercentuais(diferenca),
+      icone: 'pi-chart-line',
+      tom: diferenca === null ? 'neutro' : diferenca < 0 ? 'negativo' : 'positivo',
     },
     {
       titulo: r.indicadores,
-      valor: formatarParcial(ponto.quantidade_indicadores_validos, ponto.total_indicadores),
-      descricao: 'Indicadores com informação no Censo Escolar.',
+      valor: String(ponto.quantidade_indicadores_validos),
+      descricao: `de ${ponto.total_indicadores} indicadores da metodologia`,
+      icone: 'pi-file',
     },
   ];
 }

@@ -1,10 +1,5 @@
 <div class="analise-temporal-page">
-  <header class="dashboard-header">
-    <h1>Infraestrutura &middot; Análise Temporal</h1>
-    <p>
-      Compare a evolução do índice de infraestrutura de uma escola com a média do seu município.
-    </p>
-  </header>
+  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
   @switch (catalogo()) {
     @case ('carregando') {
@@ -48,7 +43,7 @@
         <div class="skeleton-page" aria-busy="true">
           <span class="sr-only">Carregando dados da escola selecionada.</span>
           <div class="skeleton-cards">
-            @for (i of [1, 2, 3, 4, 5, 6]; track i) {
+            @for (i of [1, 2, 3, 4]; track i) {
               <div class="skeleton-card"></div>
             }
           </div>
@@ -61,16 +56,14 @@
           @if (e.tipo === 'erro') {
             <app-estado-card
               tipo="erro"
-              titulo="Não foi possível carregar a comparação."
+              [titulo]="e.erro.mensagem"
               [acaoLabel]="
                 e.erro.codigo !== 'not_found' && e.erro.codigo !== 'validation_error'
                   ? 'Tentar novamente'
                   : null
               "
               (acao)="tentarNovamente()"
-            >
-              {{ e.erro.mensagem }}
-            </app-estado-card>
+            />
           }
         }
       }
@@ -82,40 +75,32 @@
               <app-estado-card
                 tipo="aviso"
                 icone="pi-calendar-times"
-                titulo="Esta escola não tem histórico de infraestrutura."
-              >
-                Não há dados de {{ e.comparacao.escola.no_entidade }} no Censo Escolar entre
-                {{ e.serie.anos[0] }} e {{ e.serie.anos[e.serie.anos.length - 1] }}. Selecione outra
-                escola.
-              </app-estado-card>
-            } @else {
-              @if (e.classificacao === 'sem_pares') {
-                <app-estado-card tipo="aviso" titulo="Sem média municipal para comparar.">
-                  Nenhuma outra escola de {{ e.comparacao.municipio.no_municipio }} tem dados
-                  válidos no período. O gráfico mostra apenas a escola.
-                </app-estado-card>
-              }
-
-              <app-comparacao-resumo [serie]="e.serie" />
-              <app-comparacao-grafico
-                [serie]="e.serie"
-                [titulo]="
-                  e.comparacao.escola.no_entidade +
-                  ' × Média de ' +
-                  e.comparacao.municipio.no_municipio
-                "
+                [titulo]="textos.semHistorico"
               />
-            }
+            } @else {
+              <app-comparacao-resumo [serie]="e.serie" />
+              <p class="dica-grafico">{{ textos.dicaGrafico }}</p>
+              <app-comparacao-grafico [serie]="e.serie" [titulo]="textos.tituloGrafico" />
 
-            @if (!e.comparacao.metodologia.homologada) {
-              <p class="metodologia-nota">
-                <i class="pi pi-info-circle" aria-hidden="true"></i>
-                {{ e.comparacao.metodologia.observacao }}
-              </p>
+              <section class="regras" aria-labelledby="regras-titulo">
+                <h2 id="regras-titulo">Regras metodológicas</h2>
+                <ol>
+                  @for (regra of textos.regras; track regra) {
+                    <li>{{ regra }}</li>
+                  }
+                </ol>
+              </section>
             }
           }
         }
       }
+    }
+
+    @if (estado().tipo !== 'inicial') {
+      <p class="ressalva">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        {{ textos.ressalva }}
+      </p>
     }
   </div>
 

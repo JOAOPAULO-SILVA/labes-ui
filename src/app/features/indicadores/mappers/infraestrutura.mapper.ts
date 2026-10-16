@@ -332,12 +332,13 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
   };
 }
 
+/** Mensagens dos estados de erro do protótipo (Figma), por código. */
 const MENSAGENS_ERRO_COMPARACAO: Record<CodigoErroComparacaoMunicipioModel, string> = {
-  not_found: 'Escola não encontrada.',
-  validation_error: 'Código da escola inválido.',
-  internal_error: 'Ocorreu um erro inesperado ao consultar a comparação.',
-  warehouse_unavailable: 'Os dados de infraestrutura estão temporariamente indisponíveis.',
-  network_error: 'Não foi possível conectar ao servidor.',
+  not_found: 'Escola não encontrada na fonte consultada.',
+  validation_error: 'Erro de carregamento.',
+  internal_error: 'Falha na requisição. Por favor, tente novamente.',
+  warehouse_unavailable: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
+  network_error: 'Falha na requisição. Por favor, tente novamente.',
 };
 
 export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoMunicipioModel {
@@ -361,10 +362,7 @@ export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoM
     codigo = 'internal_error';
   }
 
-  const mensagemApi =
-    corpo && typeof corpo === 'object' && typeof corpo.message === 'string' ? corpo.message : null;
-
-  return { codigo, mensagem: mensagemApi ?? MENSAGENS_ERRO_COMPARACAO[codigo] };
+  return { codigo, mensagem: MENSAGENS_ERRO_COMPARACAO[codigo] };
 }
 
 function criarPontoSemDados(ano: number, totalIndicadores: number): PontoComparacaoMunicipioModel {

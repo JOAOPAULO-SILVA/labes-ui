@@ -13,11 +13,13 @@ import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
 import { EscolaBuscaComponent } from '../../../components/escola-busca/escola-busca.component';
 import { ComparacaoGraficoComponent } from '../../../components/comparacao-grafico/comparacao-grafico.component';
 import { ComparacaoResumoComponent } from '../../../components/comparacao-resumo/comparacao-resumo.component';
+import { PaginaCabecalhoComponent } from '../../../components/pagina-cabecalho/pagina-cabecalho.component';
 import { EstadoCardComponent } from '../../../components/estado-card/estado-card.component';
 import { AnaliseTemporalPanoramaComponent } from '../../../components/analise-temporal-panorama/analise-temporal-panorama.component';
 import { prepararSerieGraficoComparacao } from '../../../mappers/infraestrutura.mapper';
 import {
   ClassificacaoSerieComparacao,
+  TEXTOS_COMPARACAO,
   classificarSerieComparacao,
 } from '../../../mappers/comparacao-grafico.mapper';
 import {
@@ -49,6 +51,7 @@ type EstadoCatalogo = 'carregando' | 'pronto' | 'erro';
     ComparacaoGraficoComponent,
     ComparacaoResumoComponent,
     EstadoCardComponent,
+    PaginaCabecalhoComponent,
     AnaliseTemporalPanoramaComponent,
   ],
   templateUrl: './analise-temporal-page.component.html',
@@ -57,6 +60,7 @@ type EstadoCatalogo = 'carregando' | 'pronto' | 'erro';
 })
 export class AnaliseTemporalPageComponent implements OnInit {
   protected readonly facade = inject(InfraestruturaFacade);
+  protected readonly textos = TEXTOS_COMPARACAO;
   private readonly destroyRef = inject(DestroyRef);
 
   /** Cada nova seleção cancela a requisição anterior (switchMap). */

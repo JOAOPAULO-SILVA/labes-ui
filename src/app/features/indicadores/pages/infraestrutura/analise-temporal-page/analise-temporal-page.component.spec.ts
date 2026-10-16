@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -50,6 +51,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       imports: [AnaliseTemporalPageComponent],
       providers: [
         MessageService,
+        provideRouter([]),
         {
           provide: InfraestruturaFacade,
           useValue: {
@@ -103,12 +105,11 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     pagina().selecionar(ESCOLA_A);
     respostas.get(15012345)!.error({
       codigo: 'warehouse_unavailable',
-      mensagem: 'Os dados de infraestrutura estão temporariamente indisponíveis.',
+      mensagem: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
     });
     fixture.detectChanges();
 
-    expect(texto()).toContain('Não foi possível carregar a comparação.');
-    expect(texto()).toContain('temporariamente indisponíveis');
+    expect(texto()).toContain('A fonte de dados está indisponível.');
     expect(texto()).toContain('Tentar novamente');
   });
 

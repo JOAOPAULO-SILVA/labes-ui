@@ -80,26 +80,71 @@
   color: var(--sie-color-text);
 }
 
-.dashboard-header h1 {
-  margin: 0;
-  color: var(--sie-color-deep);
-  font-size: clamp(1.45rem, 2vw, 2rem);
-  font-weight: 900;
-  line-height: 1.15;
-}
-
-.dashboard-header p {
-  margin: 6px 0 0;
-  color: var(--sie-color-muted);
-  font-size: 0.95rem;
-}
-
 .comparacao-conteudo {
   display: grid;
   gap: 16px;
 }
 
-.metodologia-nota {
+.dica-grafico {
+  margin: 0;
+  padding: 10px 16px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--sie-color-muted);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+.regras {
+  padding: 18px 22px;
+  border: 1px solid #dce5ef;
+  border-radius: 8px;
+  background: #fff;
+
+  h2 {
+    margin: 0 0 12px;
+    color: #17213d;
+    font-size: 0.96rem;
+    font-weight: 900;
+  }
+
+  ol {
+    display: grid;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    counter-reset: regra;
+  }
+
+  li {
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+    color: var(--sie-color-text);
+    font-size: 0.88rem;
+    line-height: 1.45;
+    counter-increment: regra;
+  }
+
+  li::before {
+    content: counter(regra);
+    display: inline-grid;
+    flex: 0 0 auto;
+    width: 22px;
+    height: 22px;
+    place-items: center;
+    border-radius: 50%;
+    background: #eef4fd;
+    color: var(--sie-color-primary);
+    font-size: 0.75rem;
+    font-weight: 900;
+  }
+}
+
+.ressalva {
   display: flex;
   gap: 8px;
   align-items: baseline;

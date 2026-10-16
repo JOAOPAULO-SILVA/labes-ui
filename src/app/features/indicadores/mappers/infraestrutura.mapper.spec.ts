@@ -59,7 +59,7 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
   const httpErro = (status: number, error: unknown = null) =>
     new HttpErrorResponse({ status, error });
 
-  it('usa o código e a mensagem enviados pela API', () => {
+  it('usa o código da API e o texto do protótipo', () => {
     const erro = mapComparacaoEscolaMunicipioErro(
       httpErro(503, {
         code: 'warehouse_unavailable',
@@ -68,7 +68,7 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
     );
     expect(erro).toEqual({
       codigo: 'warehouse_unavailable',
-      mensagem: 'Não foi possível consultar os dados de infraestrutura.',
+      mensagem: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
     });
   });
 
@@ -86,7 +86,10 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
 
   it('ignora códigos desconhecidos da API, inclusive chaves herdadas', () => {
     const erro = mapComparacaoEscolaMunicipioErro(httpErro(404, { code: 'constructor' }));
-    expect(erro).toEqual({ codigo: 'not_found', mensagem: 'Escola não encontrada.' });
+    expect(erro).toEqual({
+      codigo: 'not_found',
+      mensagem: 'Escola não encontrada na fonte consultada.',
+    });
   });
 
   it('trata erros que não são HTTP como erro interno', () => {

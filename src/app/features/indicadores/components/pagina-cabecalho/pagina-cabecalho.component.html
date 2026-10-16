@@ -1,0 +1,10 @@
+<header class="pagina-cabecalho">
+  <a [routerLink]="voltarLink()" class="voltar-link">
+    <i class="pi pi-arrow-left" aria-hidden="true"></i>
+    {{ voltarLabel() }}
+  </a>
+  <h1>{{ titulo() }}</h1>
+  @if (subtitulo(); as s) {
+    <p>{{ s }}</p>
+  }
+</header>

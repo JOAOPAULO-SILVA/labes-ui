@@ -1,8 +1,8 @@
 <div class="analise-temporal-page">
-  <header class="dashboard-header">
-    <h1>Conectividade &middot; Análise Temporal</h1>
-    <p>Evolução das métricas de conectividade das escolas no Pará e por rede de ensino.</p>
-  </header>
+  <app-pagina-cabecalho
+    titulo="Conectividade • Análise Temporal"
+    subtitulo="Evolução das métricas de conectividade das escolas no Pará e por rede de ensino."
+  />
 
   <app-analise-temporal-panorama [fonte]="facade" metricaPadrao="in_internet" />
 </div>

@@ -51,7 +51,7 @@ describe('InfraestruturaFacade.obterComparacaoEscolaMunicipio', () => {
 
     await expect(resultado).rejects.toEqual({
       codigo: 'not_found',
-      mensagem: 'Escola não encontrada.',
+      mensagem: 'Escola não encontrada na fonte consultada.',
     });
   });
 
