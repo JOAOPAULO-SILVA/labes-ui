@@ -1,67 +1,8 @@
 <div class="analise-temporal-page">
   <header class="dashboard-header">
     <h1>Acessibilidade &middot; Análise Temporal</h1>
+    <p>Evolução das métricas de acessibilidade das escolas no Pará e por rede de ensino.</p>
   </header>
 
-  @if (isLoading) {
-    <div class="skeleton-page">
-      <div class="skeleton-filter-panel">
-        <div class="skeleton-bar skeleton-bar--title"></div>
-        <div class="skeleton-filter-row">
-          <div class="skeleton-bar"></div>
-          <div class="skeleton-bar skeleton-bar--sm"></div>
-        </div>
-      </div>
-      <div class="skeleton-charts">
-        <div class="skeleton-chart"></div>
-        <div class="skeleton-chart"></div>
-      </div>
-    </div>
-  }
-
-  <div [class.content-hidden]="isLoading">
-    <section class="filtro-temporal" aria-label="Filtros da análise temporal">
-      <div class="filtro-temporal__item">
-        <label for="metrica-select">Métrica</label>
-        <select id="metrica-select" [(ngModel)]="selectedMetrica">
-          @for (m of metricas; track m.chave) {
-            <option [ngValue]="m.chave">{{ m.label }}</option>
-          }
-        </select>
-      </div>
-
-      <div class="filtro-temporal__actions">
-        <label class="filtro-temporal__pibid">
-          <input
-            type="checkbox"
-            [checked]="selectedPibid === true"
-            (change)="onPibidChange($event)"
-          />
-          <span>Apenas PIBID</span>
-        </label>
-        <button type="button" (click)="aplicarFiltros(true)" [disabled]="isLoadingFilters">
-          @if (isLoadingFilters) {
-            <i class="pi pi-spin pi-spinner" aria-hidden="true"></i>
-            Aplicando...
-          } @else {
-            Aplicar filtros
-          }
-        </button>
-        <button
-          type="button"
-          class="btn-reset"
-          (click)="resetFiltros()"
-          [disabled]="isLoadingFilters"
-        >
-          Limpar
-        </button>
-      </div>
-    </section>
-
-    <app-indicadores-charts
-      [graficosAnaliseTemporal]="graficosAnaliseTemporal"
-      graficosLayout="grade"
-      (layoutChange)="onGraficosLayoutChange()"
-    ></app-indicadores-charts>
-  </div>
+  <app-analise-temporal-panorama [fonte]="facade" metricaPadrao="in_acessibilidade_rampas" />
 </div>

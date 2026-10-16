@@ -14,16 +14,14 @@
       </div>
     }
     @case ('erro') {
-      <div class="estado-card estado-card--erro" role="alert">
-        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-        <div>
-          <strong>Não foi possível carregar a lista de escolas.</strong>
-          <p>Verifique sua conexão e tente novamente.</p>
-        </div>
-        <button type="button" class="btn-primario" (click)="carregarCatalogo()">
-          Tentar novamente
-        </button>
-      </div>
+      <app-estado-card
+        tipo="erro"
+        titulo="Não foi possível carregar a lista de escolas."
+        acaoLabel="Tentar novamente"
+        (acao)="carregarCatalogo()"
+      >
+        Verifique sua conexão e tente novamente.
+      </app-estado-card>
     }
     @default {
       <app-escola-busca
@@ -39,16 +37,10 @@
     @switch (estado().tipo) {
       @case ('inicial') {
         @if (catalogo() === 'pronto') {
-          <div class="estado-card">
-            <i class="pi pi-search" aria-hidden="true"></i>
-            <div>
-              <strong>Selecione uma escola para começar.</strong>
-              <p>
-                Busque pelo nome ou código INEP. A série histórica aparece aqui assim que a escola
-                for selecionada.
-              </p>
-            </div>
-          </div>
+          <app-estado-card icone="pi-search" titulo="Selecione uma escola para começar.">
+            Busque pelo nome ou código INEP. A série histórica aparece aqui assim que a escola for
+            selecionada.
+          </app-estado-card>
         }
       }
 
@@ -67,18 +59,18 @@
       @case ('erro') {
         @if (estado(); as e) {
           @if (e.tipo === 'erro') {
-            <div class="estado-card estado-card--erro" role="alert">
-              <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
-              <div>
-                <strong>Não foi possível carregar a comparação.</strong>
-                <p>{{ e.erro.mensagem }}</p>
-              </div>
-              @if (e.erro.codigo !== 'not_found' && e.erro.codigo !== 'validation_error') {
-                <button type="button" class="btn-primario" (click)="tentarNovamente()">
-                  Tentar novamente
-                </button>
-              }
-            </div>
+            <app-estado-card
+              tipo="erro"
+              titulo="Não foi possível carregar a comparação."
+              [acaoLabel]="
+                e.erro.codigo !== 'not_found' && e.erro.codigo !== 'validation_error'
+                  ? 'Tentar novamente'
+                  : null
+              "
+              (acao)="tentarNovamente()"
+            >
+              {{ e.erro.mensagem }}
+            </app-estado-card>
           }
         }
       }
@@ -87,29 +79,21 @@
         @if (estado(); as e) {
           @if (e.tipo === 'sucesso') {
             @if (e.classificacao === 'sem_historico') {
-              <div class="estado-card estado-card--aviso">
-                <i class="pi pi-calendar-times" aria-hidden="true"></i>
-                <div>
-                  <strong>Esta escola não tem histórico de infraestrutura.</strong>
-                  <p>
-                    Não há dados de {{ e.comparacao.escola.no_entidade }} no Censo Escolar entre
-                    {{ e.serie.anos[0] }} e {{ e.serie.anos[e.serie.anos.length - 1] }}. Selecione
-                    outra escola.
-                  </p>
-                </div>
-              </div>
+              <app-estado-card
+                tipo="aviso"
+                icone="pi-calendar-times"
+                titulo="Esta escola não tem histórico de infraestrutura."
+              >
+                Não há dados de {{ e.comparacao.escola.no_entidade }} no Censo Escolar entre
+                {{ e.serie.anos[0] }} e {{ e.serie.anos[e.serie.anos.length - 1] }}. Selecione outra
+                escola.
+              </app-estado-card>
             } @else {
               @if (e.classificacao === 'sem_pares') {
-                <div class="estado-card estado-card--aviso">
-                  <i class="pi pi-info-circle" aria-hidden="true"></i>
-                  <div>
-                    <strong>Sem média municipal para comparar.</strong>
-                    <p>
-                      Nenhuma outra escola de {{ e.comparacao.municipio.no_municipio }} tem dados
-                      válidos no período. O gráfico mostra apenas a escola.
-                    </p>
-                  </div>
-                </div>
+                <app-estado-card tipo="aviso" titulo="Sem média municipal para comparar.">
+                  Nenhuma outra escola de {{ e.comparacao.municipio.no_municipio }} tem dados
+                  válidos no período. O gráfico mostra apenas a escola.
+                </app-estado-card>
               }
 
               <app-comparacao-resumo [serie]="e.serie" />
@@ -134,4 +118,12 @@
       }
     }
   </div>
+
+  <app-analise-temporal-panorama
+    class="panorama-secao"
+    [fonte]="facade"
+    metricaPadrao="in_agua_potavel"
+    titulo="Panorama do estado"
+    descricao="Evolução agregada de cada métrica no Pará e por rede de ensino."
+  />
 </div>

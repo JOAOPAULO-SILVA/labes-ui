@@ -1,4 +1,5 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { MessageService } from 'primeng/api';
 import { Subject, of } from 'rxjs';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -48,10 +49,13 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     TestBed.configureTestingModule({
       imports: [AnaliseTemporalPageComponent],
       providers: [
+        MessageService,
         {
           provide: InfraestruturaFacade,
           useValue: {
             listarEscolasParaBusca: () => of([ESCOLA_A, ESCOLA_B]),
+            listarFiltros: () => of({ metricas: [] }),
+            listarAnaliseTemporal: () => of({ listaGraficos: [] }),
             obterComparacaoEscolaMunicipio: obter,
           },
         },

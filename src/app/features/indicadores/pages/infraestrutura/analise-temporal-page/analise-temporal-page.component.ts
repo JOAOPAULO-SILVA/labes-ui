@@ -13,6 +13,8 @@ import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
 import { EscolaBuscaComponent } from '../../../components/escola-busca/escola-busca.component';
 import { ComparacaoGraficoComponent } from '../../../components/comparacao-grafico/comparacao-grafico.component';
 import { ComparacaoResumoComponent } from '../../../components/comparacao-resumo/comparacao-resumo.component';
+import { EstadoCardComponent } from '../../../components/estado-card/estado-card.component';
+import { AnaliseTemporalPanoramaComponent } from '../../../components/analise-temporal-panorama/analise-temporal-panorama.component';
 import { prepararSerieGraficoComparacao } from '../../../mappers/infraestrutura.mapper';
 import {
   ClassificacaoSerieComparacao,
@@ -42,13 +44,19 @@ type EstadoCatalogo = 'carregando' | 'pronto' | 'erro';
 @Component({
   selector: 'app-analise-temporal-page',
   standalone: true,
-  imports: [EscolaBuscaComponent, ComparacaoGraficoComponent, ComparacaoResumoComponent],
+  imports: [
+    EscolaBuscaComponent,
+    ComparacaoGraficoComponent,
+    ComparacaoResumoComponent,
+    EstadoCardComponent,
+    AnaliseTemporalPanoramaComponent,
+  ],
   templateUrl: './analise-temporal-page.component.html',
   styleUrl: './analise-temporal-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AnaliseTemporalPageComponent implements OnInit {
-  private readonly facade = inject(InfraestruturaFacade);
+  protected readonly facade = inject(InfraestruturaFacade);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Cada nova seleção cancela a requisição anterior (switchMap). */

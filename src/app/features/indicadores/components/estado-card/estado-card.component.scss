@@ -1,0 +1,79 @@
+:host {
+  display: block;
+}
+
+.estado-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+  padding: 22px;
+  border: 1px solid #cfdbea;
+  border-left: 4px solid var(--sie-color-primary);
+  border-radius: 8px;
+  background: #fff;
+  box-shadow: 0 16px 34px rgba(10, 42, 104, 0.08);
+
+  > .pi {
+    color: var(--sie-color-primary);
+    font-size: 1.5rem;
+  }
+
+  > div {
+    flex: 1 1 280px;
+  }
+
+  strong {
+    color: var(--sie-color-deep);
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--sie-color-muted);
+    line-height: 1.5;
+  }
+
+  p:empty {
+    display: none;
+  }
+
+  &--aviso {
+    border-left-color: #d99a06;
+
+    > .pi {
+      color: #b07d00;
+    }
+  }
+
+  &--erro {
+    border-left-color: #c62828;
+
+    > .pi {
+      color: #c62828;
+    }
+  }
+}
+
+.btn-primario {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid var(--sie-color-primary);
+  border-radius: 6px;
+  background: var(--sie-color-primary);
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #064ec7;
+    background: #064ec7;
+  }
+}
+
+@media (max-width: 620px) {
+  .btn-primario {
+    width: 100%;
+  }
+}
