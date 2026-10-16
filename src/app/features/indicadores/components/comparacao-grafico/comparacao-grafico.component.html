@@ -1,0 +1,10 @@
+<figure class="grafico-card">
+  <figcaption>{{ titulo() }}</figcaption>
+  <plotly-plot
+    [data]="figura().data"
+    [layout]="figura().layout"
+    [config]="config"
+    [useResizeHandler]="true"
+    [style]="{ position: 'relative', width: '100%', height: '420px' }"
+  ></plotly-plot>
+</figure>

@@ -1,0 +1,5 @@
+<section class="comparacao-resumo" aria-label="Resumo do último ano">
+  @for (item of itens(); track item.titulo) {
+    <app-indicador-card [titulo]="item.titulo" [valor]="item.valor" [descricao]="item.descricao" />
+  }
+</section>
