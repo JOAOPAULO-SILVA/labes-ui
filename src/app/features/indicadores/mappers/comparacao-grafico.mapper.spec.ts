@@ -56,23 +56,47 @@ describe('montarFiguraComparacao', () => {
   });
 });
 
-describe('tooltip', () => {
-  it('mostra ano, escola, demais escolas e diferença como no protótipo', () => {
-    expect(texto(montarLinhasTooltip(serie.pontos[0]))).toBe(
+describe('tooltip (REQ-04 SP3-11, item 3)', () => {
+  const ponto = serie.pontos[0];
+
+  it('A) formato padrão: ano, escola com indicadores válidos, demais escolas com pares, diferença', () => {
+    expect(texto(montarLinhasTooltip(ponto))).toBe(
       [
-        'Ano 2022',
+        '2022',
         'Escola selecionada: 76,47% (17 indicadores válidos)',
         'Demais escolas do município: 64,71% (85 pares)',
-        'Diferença: +11,76 p.p.',
+        'Diferença: 11,76 p.p.',
       ].join('\n'),
     );
   });
 
-  it('mostra "Sem dados" em vez de zero', () => {
-    const t = texto(montarLinhasTooltip(serie.pontos[2]));
-    expect(t).toContain('Escola selecionada: Sem dados');
-    expect(t).toContain('Diferença: Sem dados');
-    expect(t).not.toContain('0%');
+  it('B) escola sem dados, município com média', () => {
+    const excecao1 = {
+      ...ponto,
+      indice_escola_percentual: null,
+      quantidade_indicadores_validos: 0,
+      diferenca_pontos_percentuais: null,
+    };
+    expect(texto(montarLinhasTooltip(excecao1))).toBe(
+      [
+        '2022',
+        'Escola selecionada: Sem dados',
+        'Demais escolas do município: 64,71% (85 pares)',
+        'Diferença: Sem dados',
+      ].join('\n'),
+    );
+  });
+
+  it('C) sem média municipal ou sem pares válidos', () => {
+    const excecao2 = serie.pontos[3];
+    expect(texto(montarLinhasTooltip(excecao2))).toBe(
+      [
+        '2025',
+        'Escola selecionada: 70,59% (17 indicadores válidos)',
+        'Demais escolas do município: Sem dados',
+        'Diferença: Sem dados',
+      ].join('\n'),
+    );
   });
 });
 
@@ -131,6 +155,7 @@ describe('formatação', () => {
     expect(formatarPercentual(7.5)).toBe('7,5%');
     expect(formatarPercentual(null)).toBe('Sem dados');
     expect(formatarPontosPercentuais(-3.2)).toBe('-3,2 p.p.');
+    expect(formatarPontosPercentuais(11.76)).toBe('11,76 p.p.');
     expect(formatarPontosPercentuais(0)).toBe('0 p.p.');
   });
 });

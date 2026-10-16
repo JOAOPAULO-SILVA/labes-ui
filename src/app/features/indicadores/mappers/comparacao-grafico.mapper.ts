@@ -7,7 +7,8 @@ import {
 
 /**
  * Textos do gráfico, do tooltip, do resumo e dos estados.
- * Fonte: protótipo "v1 escolas x municipios" (Figma) e contrato BE-05 v2.
+ * Fontes, em ordem de precedência: REQ-04 SP3-11 (definição de textos, legenda, tooltip e
+ * limitações), protótipo "v1 escolas x municipios" (Figma) e contrato BE-05 v2.
  */
 export const TEXTOS_COMPARACAO = {
   titulo: 'Infraestrutura • Análise Temporal',
@@ -30,7 +31,6 @@ export const TEXTOS_COMPARACAO = {
     indicadores: 'Indicadores válidos',
   },
   tooltip: {
-    ano: 'Ano',
     escola: 'Escola selecionada',
     municipio: 'Demais escolas do município',
     diferenca: 'Diferença',
@@ -40,7 +40,7 @@ export const TEXTOS_COMPARACAO = {
     'A referência municipal exclui a escola selecionada.',
     'Todos os indicadores possuem o mesmo peso.',
     'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
-    'Esta análise utiliza metodologia de cálculo em caráter provisório e pendente de homologação.',
+    'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
   ],
   ressalva:
     'Metodologia de cálculo provisória e não homologada. O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
@@ -111,18 +111,28 @@ export function formatarPercentual(valor: number | null): string {
 
 export function formatarPontosPercentuais(valor: number | null): string {
   if (valor === null) return TEXTOS_COMPARACAO.semDado;
-  const sinal = valor > 0 ? '+' : '';
-  return `${sinal}${formatoNumero.format(valor)} p.p.`;
+  return `${formatoNumero.format(valor)} p.p.`;
 }
 
-/** Linhas do tooltip de um ano, no formato do protótipo. */
+/**
+ * Linhas do tooltip de um ano (REQ-04 SP3-11, item 3): formato padrão e as duas exceções.
+ * Valor ausente = "Sem dados", sem a contagem entre parênteses.
+ */
 export function montarLinhasTooltip(ponto: PontoComparacaoMunicipioModel): string[] {
   const t = TEXTOS_COMPARACAO.tooltip;
+  const escola =
+    ponto.indice_escola_percentual === null
+      ? TEXTOS_COMPARACAO.semDado
+      : `${formatarPercentual(ponto.indice_escola_percentual)} (${ponto.quantidade_indicadores_validos} indicadores válidos)`;
+  const municipio =
+    ponto.media_municipal_percentual === null
+      ? TEXTOS_COMPARACAO.semDado
+      : `${formatarPercentual(ponto.media_municipal_percentual)} (${ponto.quantidade_pares_validos} pares)`;
   return [
-    `<b>${t.ano} ${ponto.ano}</b>`,
-    `${t.escola}: <b>${formatarPercentual(ponto.indice_escola_percentual)}</b> (${ponto.quantidade_indicadores_validos} indicadores válidos)`,
-    `${t.municipio}: <b>${formatarPercentual(ponto.media_municipal_percentual)}</b> (${ponto.quantidade_pares_validos} pares)`,
-    `${t.diferenca}: <b>${formatarPontosPercentuais(ponto.diferenca_pontos_percentuais)}</b>`,
+    `<b>${ponto.ano}</b>`,
+    `${t.escola}: ${escola}`,
+    `${t.municipio}: ${municipio}`,
+    `${t.diferenca}: ${formatarPontosPercentuais(ponto.diferenca_pontos_percentuais)}`,
   ];
 }
 
