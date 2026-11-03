@@ -189,6 +189,8 @@ export interface ItemComposicaoTerritorialModel {
   semDados: number;
   referencia: number;
   percentual: number | null;
+  /** 100 × válidos / escolas de referência; informativa, sem classificação. */
+  cobertura: number | null;
 }
 
 export type CodigoErroComparacaoMunicipioModel =

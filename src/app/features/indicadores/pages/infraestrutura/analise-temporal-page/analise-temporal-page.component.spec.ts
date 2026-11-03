@@ -286,6 +286,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       expect(primeiro.textContent).toContain('14,12%');
       expect(primeiro.textContent).toContain('9 sem dados');
       expect(primeiro.getAttribute('title')).toContain('9 sem informação');
+      expect(primeiro.getAttribute('title')).toContain('cobertura do indicador: 90,43%');
     });
 
     it('exibe aviso de cobertura baixa sem ocultar os dados nem tratá-lo como homologado', () => {
@@ -303,6 +304,8 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
     it('mostra Sem dados no percentual quando nenhuma escola tem informação válida', () => {
       carregar(2025);
+      expect(territorial().querySelector('.territorial__barra--sem-dados')).not.toBeNull();
+      expect(territorial().querySelector('.territorial__barra span')).toBeNull();
       expect(territorial().querySelector('.territorial__percentual')?.textContent).toBe(
         'Sem dados',
       );
@@ -337,6 +340,15 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       fixture.detectChanges();
       expect(textoTerritorial()).toContain('Não foi possível carregar a composição territorial.');
     });
+  });
+
+  it('exibe os avisos de metodologia.avisos no fim das regras após a resposta (BE09 §15)', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(MODELO);
+    fixture.detectChanges();
+    const regras = [...el().querySelectorAll('.regras li')].map((li) => li.textContent?.trim());
+    expect(regras.slice(-2)).toEqual(MODELO.metodologia.avisos);
+    expect(regras).toHaveLength(5);
   });
 
   it('volta ao estado inicial ao limpar', () => {

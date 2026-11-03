@@ -76,8 +76,15 @@ export const TEXTOS_COMPARACAO = {
     },
     contagem: (presentes: number, validos: number) => `${presentes} de ${validos}`,
     semDados: (n: number) => `${n} sem dados`,
-    tooltip: (label: string, presentes: number, validos: number, semDados: number, pct: string) =>
-      `${label}: ${presentes} de ${validos} escolas com informação válida possuem o recurso (${pct}). ${semDados} sem informação.`,
+    tooltip: (
+      label: string,
+      presentes: number,
+      validos: number,
+      semDados: number,
+      pct: string,
+      cobertura: string,
+    ) =>
+      `${label}: ${presentes} de ${validos} escolas com informação válida possuem o recurso (${pct}). ${semDados} sem informação; cobertura do indicador: ${cobertura}.`,
     nota: 'A presença por indicador não equivale à média municipal do índice, que é calculada escola a escola.',
     avisoCobertura: (ano: number) =>
       `Cobertura baixa: menos de 60% dos indicadores da escola selecionada têm informação válida em ${ano}. Os dados continuam exibidos e devem ser interpretados com cautela.`,
@@ -362,6 +369,7 @@ export function montarComposicaoTerritorial(
       semDados: item?.quantidade_sem_dados ?? 0,
       referencia: item?.quantidade_escolas_referencia ?? 0,
       percentual: item?.percentual_presentes ?? null,
+      cobertura: item?.cobertura_percentual ?? null,
     };
   });
 }

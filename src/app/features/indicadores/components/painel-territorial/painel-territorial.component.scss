@@ -152,6 +152,11 @@ h2 {
     border-radius: 3px;
     background: var(--sie-color-primary);
   }
+
+  /* Sem válidos: hachurado, para não parecer uma barra de 0%. */
+  &--sem-dados {
+    background: repeating-linear-gradient(45deg, #eef1f5 0 4px, #dde3ea 4px 8px);
+  }
 }
 
 .territorial__contagens {

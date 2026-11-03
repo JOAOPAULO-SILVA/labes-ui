@@ -158,6 +158,17 @@ export class AnaliseTemporalPageComponent implements OnInit {
     return e.tipo === 'erro' && ERROS_RECUPERAVEIS.has(e.erro.codigo) ? 'Tentar novamente' : null;
   });
 
+  /**
+   * Regras fixas da interface seguidas dos avisos de `metodologia.avisos` (BE09 §15).
+   * Antes da resposta, usa os dois avisos equivalentes do REQ-04.
+   */
+  protected readonly regras = computed(() => {
+    const e = this.estado();
+    const avisos = e.tipo === 'sucesso' ? e.comparacao.metodologia.avisos : [];
+    const fixas = this.textos.regras.slice(0, 3);
+    return avisos.length > 0 ? [...fixas, ...avisos] : [...this.textos.regras];
+  });
+
   /** Ano escolhido no seletor da composição; `null` usa o último ano disponível. */
   protected readonly anoComposicao = signal<number | null>(null);
 

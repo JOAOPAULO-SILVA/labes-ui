@@ -70,7 +70,7 @@
       <section class="regras" aria-labelledby="regras-titulo">
         <h2 id="regras-titulo">Regras metodológicas</h2>
         <ol>
-          @for (regra of textos.regras; track regra) {
+          @for (regra of regras(); track regra) {
             <li>{{ regra }}</li>
           }
         </ol>

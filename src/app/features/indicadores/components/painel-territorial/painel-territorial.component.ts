@@ -56,6 +56,7 @@ export class PainelTerritorialComponent {
           item.validos,
           item.semDados,
           percentualTexto,
+          formatarPercentual(item.cobertura),
         ),
       };
     }),

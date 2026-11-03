@@ -59,8 +59,14 @@
               <span class="territorial__label">{{ linha.label }}</span>
               <span class="territorial__percentual">{{ linha.percentualTexto }}</span>
             </div>
-            <div class="territorial__barra" aria-hidden="true">
-              <span [style.width.%]="linha.percentual ?? 0"></span>
+            <div
+              class="territorial__barra"
+              [class.territorial__barra--sem-dados]="linha.percentual === null"
+              aria-hidden="true"
+            >
+              @if (linha.percentual !== null) {
+                <span [style.width.%]="linha.percentual"></span>
+              }
             </div>
             <div class="territorial__contagens" aria-hidden="true">
               <span>{{ textos.contagem(linha.presentes, linha.validos) }}</span>
