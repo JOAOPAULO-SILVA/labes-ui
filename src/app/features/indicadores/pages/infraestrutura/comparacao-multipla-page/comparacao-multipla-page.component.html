@@ -1,0 +1,246 @@
+<div class="comparacao-multipla-page">
+  <app-pagina-cabecalho
+    titulo="Infraestrutura • Comparação múltipla"
+    subtitulo="Compare a evolução do índice de infraestrutura de até três escolas ou municípios."
+  />
+
+  <aside class="prototipo-aviso" role="note">
+    <i class="pi pi-info-circle" aria-hidden="true"></i>
+    <p>
+      <strong>Protótipo de descoberta (FE11).</strong> Os valores exibidos são
+      <strong>fictícios</strong>; a integração com a API não foi implementada e o contrato (BE11)
+      ainda é uma proposta.
+    </p>
+  </aside>
+
+  <section class="seletor" aria-labelledby="seletor-titulo">
+    <div class="seletor__cabecalho">
+      <h2 id="seletor-titulo">O que você quer comparar?</h2>
+      <span class="seletor__contador" aria-live="polite">
+        {{ alvos().length }} de {{ limite }} selecionados
+      </span>
+    </div>
+
+    <div class="seletor__linha">
+      <div class="seletor__tipo" role="group" aria-label="Tipo de item">
+        <button
+          type="button"
+          [class.ativo]="tipo() === 'municipio'"
+          [attr.aria-pressed]="tipo() === 'municipio'"
+          (click)="definirTipo('municipio')"
+        >
+          <i class="pi pi-map-marker" aria-hidden="true"></i> Município
+        </button>
+        <button
+          type="button"
+          [class.ativo]="tipo() === 'escola'"
+          [attr.aria-pressed]="tipo() === 'escola'"
+          (click)="definirTipo('escola')"
+        >
+          <i class="pi pi-building" aria-hidden="true"></i> Escola
+        </button>
+      </div>
+
+      <app-select
+        class="seletor__busca"
+        [id]="'alvo-select'"
+        [label]="tipo() === 'escola' ? 'Escola' : 'Município'"
+        [placeholder]="tipo() === 'escola' ? 'Buscar escola' : 'Buscar município'"
+        searchPlaceholder="Digite para buscar"
+        emptyMessage="Nenhum resultado encontrado"
+        [options]="opcoes()"
+        [searchable]="true"
+        [loading]="!catalogoPronto()"
+        [disabled]="!catalogoPronto() || limiteAtingido()"
+        [ngModel]="candidato()"
+        (ngModelChange)="candidato.set($event)"
+      />
+
+      <button
+        type="button"
+        class="btn btn--primario"
+        [disabled]="!candidato() || limiteAtingido()"
+        (click)="adicionar()"
+      >
+        <i class="pi pi-plus" aria-hidden="true"></i> Adicionar
+      </button>
+    </div>
+
+    @if (aviso()) {
+      <p class="seletor__aviso" role="status">
+        <i class="pi pi-exclamation-circle" aria-hidden="true"></i> {{ aviso() }}
+      </p>
+    }
+
+    @if (alvos().length > 0) {
+      <div class="selecionados">
+        <ul aria-label="Itens selecionados">
+          @for (alvo of alvos(); track idAlvo(alvo); let i = $index) {
+            <li class="chip" [attr.data-cor]="i">
+              <i
+                [class]="alvo.tipo === 'escola' ? 'pi pi-building' : 'pi pi-map-marker'"
+                aria-hidden="true"
+              ></i>
+              <span class="chip__texto">
+                <span class="chip__nome">{{ alvo.nome }}</span>
+                @if (alvo.tipo === 'escola') {
+                  <small>+ referência de {{ alvo.municipio ?? 'município não informado' }}</small>
+                }
+              </span>
+              <button
+                type="button"
+                class="chip__remover"
+                [attr.aria-label]="'Remover ' + alvo.nome"
+                (click)="remover(idAlvo(alvo))"
+              >
+                <i class="pi pi-times" aria-hidden="true"></i>
+              </button>
+            </li>
+          }
+        </ul>
+        <button type="button" class="btn btn--link" (click)="limpar()">Limpar filtros</button>
+      </div>
+    }
+  </section>
+
+  <section class="cenarios" aria-labelledby="cenarios-titulo">
+    <h2 id="cenarios-titulo">Simular estado do protótipo</h2>
+    <div class="cenarios__opcoes" role="group" aria-labelledby="cenarios-titulo">
+      @for (c of cenarios; track c.valor) {
+        <button
+          type="button"
+          [class.ativo]="cenario() === c.valor"
+          [attr.aria-pressed]="cenario() === c.valor"
+          (click)="cenario.set(c.valor)"
+        >
+          {{ c.label }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <figure class="grafico" [attr.aria-busy]="estadoGrafico() === 'carregando'">
+    <figcaption>
+      Percentual de recursos de infraestrutura disponíveis — evolução temporal
+    </figcaption>
+
+    @if (estadoGrafico() === 'dados' && coberturaBaixa().length > 0) {
+      <div class="grafico__alerta" role="note">
+        <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+        <div>
+          @for (e of coberturaBaixa(); track e.nome) {
+            <p>
+              <strong>Cobertura baixa:</strong> {{ e.nome }} tem menos de 60% dos indicadores com
+              informação válida em {{ e.anos.join(', ') }}. A linha continua exibida.
+            </p>
+          }
+          <p class="grafico__alerta-nota">
+            Limite informativo e provisório; aplica-se só às escolas, não às referências municipais.
+          </p>
+        </div>
+      </div>
+    }
+
+    @switch (estadoGrafico()) {
+      @case ('dados') {
+        <plotly-plot
+          [data]="figura().data"
+          [layout]="figura().layout"
+          [config]="config"
+          [useResizeHandler]="true"
+          [style]="{ position: 'relative', width: '100%', height: '420px' }"
+        ></plotly-plot>
+      }
+      @case ('carregando') {
+        <div class="grafico__skeleton" aria-hidden="true"></div>
+        <p class="sr-only" role="status">Carregando a comparação.</p>
+      }
+      @default {
+        <div class="grafico__vazio" [attr.role]="estadoGrafico() === 'erro' ? 'alert' : null">
+          <i class="pi pi-chart-line" aria-hidden="true"></i>
+          @switch (estadoGrafico()) {
+            @case ('vazio') {
+              <p>Selecione até três escolas ou municípios para visualizar a comparação.</p>
+            }
+            @case ('erro') {
+              <p>Não foi possível carregar a comparação.</p>
+              <button type="button" class="btn btn--primario" (click)="cenario.set('dados')">
+                Tentar novamente
+              </button>
+            }
+            @case ('sem_dados') {
+              <p>
+                Não existem dados de infraestrutura suficientes para os itens selecionados no
+                período de 2022 a 2025.
+              </p>
+            }
+          }
+        </div>
+      }
+    }
+
+    <ul class="legenda-estilos" aria-label="Como ler o gráfico">
+      <li><span class="amostra amostra--escola"></span>Escola selecionada (linha contínua, ●)</li>
+      <li>
+        <span class="amostra amostra--municipio"></span>Município selecionado (linha contínua, ■)
+      </li>
+      <li>
+        <span class="amostra amostra--referencia"></span>Referência municipal automática da escola
+        (tracejada, ○)
+      </li>
+      <li>Ano sem dado interrompe apenas a linha daquele item.</li>
+    </ul>
+  </figure>
+
+  @if (estadoGrafico() === 'dados') {
+    <details class="tabela-dados">
+      <summary>Ver dados do gráfico em tabela</summary>
+      <div class="tabela-dados__rolagem">
+        <table>
+          <caption class="sr-only">
+            Índice por item e ano (valores fictícios)
+          </caption>
+          <thead>
+            <tr>
+              <th scope="col">Série</th>
+              @for (ano of anos; track ano) {
+                <th scope="col">{{ ano }}</th>
+              }
+            </tr>
+          </thead>
+          <tbody>
+            @for (s of series(); track s.id) {
+              <tr>
+                <th scope="row">{{ s.legenda }}</th>
+                @for (p of s.pontos; track p.ano) {
+                  <td>{{ formatarValor(p.valor) }}</td>
+                }
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </details>
+  }
+
+  <section class="decisoes" aria-labelledby="decisoes-titulo">
+    <h2 id="decisoes-titulo">Regras do protótipo e decisões em aberto</h2>
+    <ul>
+      <li>
+        Até {{ limite }} itens no total, misturando escolas e municípios; o quarto é bloqueado
+        (DAD07).
+      </li>
+      <li>
+        Cada escola traz automaticamente a referência das demais escolas do seu município, que não
+        ocupa vaga (DAD07). <em>Em aberto:</em> a BE11 propõe mostrar essa referência só no tooltip,
+        e o BDD original da REQ06 conta três linhas para uma escola e dois municípios.
+      </li>
+      <li>Não há média conjunta entre municípios: cada um tem sua própria linha.</li>
+      <li>
+        <em>Em aberto:</em> como apresentar município selecionado e referência automática do mesmo
+        território, que podem ter valores diferentes.
+      </li>
+      <li>Esta análise utiliza metodologia provisória, pendente de homologação.</li>
+    </ul>
+  </section>
+</div>
