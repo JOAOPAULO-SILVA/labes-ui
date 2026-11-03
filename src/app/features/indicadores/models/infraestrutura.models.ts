@@ -125,6 +125,8 @@ export interface PontoComparacaoMunicipioModel {
   quantidade_pares_validos: number;
   denominador_pares: number;
   cobertura_pares_percentual: number | null;
+  /** Município histórico da escola no ano; `null` em lacuna. */
+  municipio_referencia: { co_municipio: number; no_municipio: string } | null;
   /** `false` quando o ano é uma lacuna: a escola não tem registro no Censo daquele ano. */
   registro_historico_disponivel: boolean;
   /** Alerta informativo: menos de 60% dos indicadores da escola são válidos no ano. */
@@ -176,6 +178,17 @@ export interface ItemComposicaoIndiceModel {
   chave: string;
   label: string;
   valor: ValorIndicadorModel;
+}
+
+/** Um indicador entre as demais escolas do município; `percentual` nulo sem válidos. */
+export interface ItemComposicaoTerritorialModel {
+  chave: string;
+  label: string;
+  presentes: number;
+  validos: number;
+  semDados: number;
+  referencia: number;
+  percentual: number | null;
 }
 
 export type CodigoErroComparacaoMunicipioModel =

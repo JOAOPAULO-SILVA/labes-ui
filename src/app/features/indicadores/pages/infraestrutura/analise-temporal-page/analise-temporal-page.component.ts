@@ -20,6 +20,10 @@ import {
   ComposicaoIndiceComponent,
   EstadoComposicaoIndice,
 } from '../../../components/composicao-indice/composicao-indice.component';
+import {
+  EstadoPainelTerritorial,
+  PainelTerritorialComponent,
+} from '../../../components/painel-territorial/painel-territorial.component';
 import { PaginaCabecalhoComponent } from '../../../components/pagina-cabecalho/pagina-cabecalho.component';
 import { prepararSerieGraficoComparacao } from '../../../mappers/infraestrutura.mapper';
 import {
@@ -28,6 +32,7 @@ import {
   TEXTOS_COMPARACAO,
   classificarSerieComparacao,
   montarComposicaoIndice,
+  montarComposicaoTerritorial,
   selecionarPontoResumo,
 } from '../../../mappers/comparacao-grafico.mapper';
 import {
@@ -35,8 +40,18 @@ import {
   ErroComparacaoMunicipioModel,
   EscolaBuscaModel,
   ItemComposicaoIndiceModel,
+  ItemComposicaoTerritorialModel,
   SerieGraficoComparacaoModel,
 } from '../../../models/infraestrutura.models';
+
+interface TerritorialViewModel {
+  estado: EstadoPainelTerritorial;
+  itens: ItemComposicaoTerritorialModel[];
+  ano: number | null;
+  municipio: string | null;
+  escolasReferencia: number;
+  coberturaReduzida: boolean;
+}
 
 interface ComposicaoViewModel {
   estado: EstadoComposicaoIndice;
@@ -73,6 +88,7 @@ const ERROS_RECUPERAVEIS = new Set(['internal_error', 'warehouse_unavailable', '
     ComparacaoResumoComponent,
     ComposicaoIndiceComponent,
     PaginaCabecalhoComponent,
+    PainelTerritorialComponent,
   ],
   templateUrl: './analise-temporal-page.component.html',
   styleUrl: './analise-temporal-page.component.scss',
@@ -145,6 +161,45 @@ export class AnaliseTemporalPageComponent implements OnInit {
   /** Ano escolhido no seletor da composição; `null` usa o último ano disponível. */
   protected readonly anoComposicao = signal<number | null>(null);
 
+  /** Ano e ponto da série usados pelas duas composições; `null` fora do estado de sucesso. */
+  private readonly pontoSelecionado = computed(() => {
+    const e = this.estado();
+    if (e.tipo !== 'sucesso') return null;
+    const ano =
+      this.anoComposicao() ?? selecionarPontoResumo(e.serie)?.ano ?? e.serie.anos.at(-1) ?? null;
+    return { ano, ponto: e.serie.pontos.find((p) => p.ano === ano) ?? null };
+  });
+
+  protected readonly territorial = computed<TerritorialViewModel>(() => {
+    const e = this.estado();
+    const vazio = {
+      itens: [],
+      ano: null,
+      municipio: null,
+      escolasReferencia: 0,
+      coberturaReduzida: false,
+    };
+    if (e.tipo !== 'sucesso') {
+      const estado: EstadoPainelTerritorial =
+        e.tipo === 'carregando' ? 'carregando' : e.tipo === 'erro' ? 'erro' : 'inicial';
+      return { ...vazio, estado };
+    }
+
+    const { ano, ponto } = this.pontoSelecionado()!;
+    if (!ponto || !ponto.registro_historico_disponivel || !ponto.municipio_referencia) {
+      return { ...vazio, estado: 'sem_registro', ano };
+    }
+    const itens = montarComposicaoTerritorial(ponto, e.comparacao.metodologia.indicadores);
+    return {
+      estado: itens.length > 0 && ponto.denominador_pares > 0 ? 'pronto' : 'sem_pares',
+      itens,
+      ano,
+      municipio: ponto.municipio_referencia.no_municipio,
+      escolasReferencia: ponto.denominador_pares,
+      coberturaReduzida: ponto.cobertura_indicadores_reduzida,
+    };
+  });
+
   protected readonly composicao = computed<ComposicaoViewModel>(() => {
     const e = this.estado();
     if (e.tipo !== 'sucesso') {
@@ -160,8 +215,7 @@ export class AnaliseTemporalPageComponent implements OnInit {
     }
 
     const anos = e.serie.anos;
-    const ano = this.anoComposicao() ?? selecionarPontoResumo(e.serie)?.ano ?? anos.at(-1) ?? null;
-    const ponto = e.serie.pontos.find((p) => p.ano === ano) ?? null;
+    const { ano, ponto } = this.pontoSelecionado()!;
     const comRegistro = ponto !== null && ponto.registro_historico_disponivel;
     const t = this.textos.composicao;
 

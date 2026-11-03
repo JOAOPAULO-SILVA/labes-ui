@@ -359,6 +359,12 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
         quantidade_pares_validos: ponto.quantidade_pares_validos,
         denominador_pares: ponto.denominador_pares,
         cobertura_pares_percentual: ponto.cobertura_pares_percentual ?? null,
+        municipio_referencia: ponto.municipio_referencia
+          ? {
+              co_municipio: ponto.municipio_referencia.co_municipio,
+              no_municipio: ponto.municipio_referencia.no_municipio,
+            }
+          : null,
         registro_historico_disponivel: ponto.registro_historico_disponivel,
         cobertura_indicadores_reduzida: ponto.cobertura_indicadores_reduzida,
         composicao_escola: lerComposicaoEscola(ponto.composicao_escola),
@@ -415,6 +421,7 @@ function criarPontoSemDados(ano: number, totalIndicadores: number): PontoCompara
     quantidade_pares_validos: 0,
     denominador_pares: 0,
     cobertura_pares_percentual: null,
+    municipio_referencia: null,
     registro_historico_disponivel: false,
     cobertura_indicadores_reduzida: false,
     composicao_escola: {},

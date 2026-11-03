@@ -257,6 +257,88 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     expect(el().querySelector('#composicao-titulo')?.textContent).toContain('2025');
   });
 
+  describe('painel territorial (FE10)', () => {
+    const territorial = () => el().querySelector('.territorial') as HTMLElement;
+    const textoTerritorial = () => territorial().textContent ?? '';
+    const carregar = (ano?: number) => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      respostas.get(15012345)!.next(MODELO);
+      if (ano) composicaoPagina().onAnoComposicaoChange(ano);
+      fixture.detectChanges();
+    };
+
+    it('mostra os mesmos indicadores, na mesma ordem, da composição da escola', () => {
+      carregar(2022);
+      const escola = [...el().querySelectorAll('.composicao__label')].map((e) => e.textContent);
+      const municipio = [...territorial().querySelectorAll('.territorial__label')].map(
+        (e) => e.textContent,
+      );
+      expect(municipio).toHaveLength(17);
+      expect(municipio).toEqual(escola);
+    });
+
+    it('explicita município e ano e mostra presentes, válidos, percentual e sem dados', () => {
+      carregar(2022);
+      expect(textoTerritorial()).toContain('Belém · 2022');
+      expect(textoTerritorial()).toContain('94 escolas de referência');
+      const primeiro = territorial().querySelector('.territorial__item')!;
+      expect(primeiro.textContent).toContain('12 de 85');
+      expect(primeiro.textContent).toContain('14,12%');
+      expect(primeiro.textContent).toContain('9 sem dados');
+      expect(primeiro.getAttribute('title')).toContain('9 sem informação');
+    });
+
+    it('exibe aviso de cobertura baixa sem ocultar os dados nem tratá-lo como homologado', () => {
+      carregar(2023);
+      expect(territorial().querySelector('.territorial__aviso')).not.toBeNull();
+      expect(territorial().querySelectorAll('.territorial__item')).toHaveLength(17);
+      expect(textoTerritorial()).toContain('provisório');
+      expect(textoTerritorial()).not.toMatch(/homologado pelo professor|limite aprovado/i);
+    });
+
+    it('não exibe o aviso quando a cobertura da escola não é baixa', () => {
+      carregar(2022);
+      expect(territorial().querySelector('.territorial__aviso')).toBeNull();
+    });
+
+    it('mostra Sem dados no percentual quando nenhuma escola tem informação válida', () => {
+      carregar(2025);
+      expect(territorial().querySelector('.territorial__percentual')?.textContent).toBe(
+        'Sem dados',
+      );
+    });
+
+    it('informa ausência de pares quando não há outras escolas', () => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      respostas.get(15012345)!.next({
+        ...MODELO,
+        serie: MODELO.serie.map((p) => ({
+          ...p,
+          composicao_municipal: null,
+          denominador_pares: 0,
+        })),
+      });
+      composicaoPagina().onAnoComposicaoChange(2022);
+      fixture.detectChanges();
+      expect(textoTerritorial()).toContain(
+        'Não há outras escolas do município com registro em 2022 para compor a referência.',
+      );
+    });
+
+    it('informa ano sem registro, carregamento e erro', () => {
+      carregar(2024);
+      expect(textoTerritorial()).toContain('Sem referência territorial em 2024');
+
+      pagina().onEscolaChange(ESCOLA_B.co_entidade);
+      fixture.detectChanges();
+      expect(territorial().getAttribute('aria-busy')).toBe('true');
+
+      respostas.get(15054321)!.error({ codigo: 'internal_error', mensagem: 'Erro.' });
+      fixture.detectChanges();
+      expect(textoTerritorial()).toContain('Não foi possível carregar a composição territorial.');
+    });
+  });
+
   it('volta ao estado inicial ao limpar', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
     respostas.get(15012345)!.next(MODELO);

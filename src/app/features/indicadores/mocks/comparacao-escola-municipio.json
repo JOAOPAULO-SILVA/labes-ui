@@ -84,7 +84,144 @@
           "in_patio_coberto": 0,
           "in_auditorio": 0
         },
-        "composicao_municipal": null
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 12,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 14.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 17,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 20.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 21,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 24.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 25,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 29.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 29,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 34.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 34,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 40.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 38,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 44.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 42,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 49.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 46,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 54.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 51,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 60.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 55,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 64.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 59,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 69.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 63,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 74.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 68,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 80.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 72,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 84.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 76,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 89.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 80,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 94.12,
+            "cobertura_percentual": 90.43
+          }
+        }
       },
       {
         "ano": 2023,
@@ -124,7 +261,144 @@
           "in_patio_coberto": null,
           "in_auditorio": null
         },
-        "composicao_municipal": null
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 12,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 14.46,
+            "cobertura_percentual": 90.22
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 16,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 19.28,
+            "cobertura_percentual": 90.22
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 20,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 24.1,
+            "cobertura_percentual": 90.22
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 24,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 28.92,
+            "cobertura_percentual": 90.22
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 29,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 34.94,
+            "cobertura_percentual": 90.22
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 33,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 39.76,
+            "cobertura_percentual": 90.22
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 37,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 44.58,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 41,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 49.4,
+            "cobertura_percentual": 90.22
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 45,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 54.22,
+            "cobertura_percentual": 90.22
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 49,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 59.04,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 53,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 63.86,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 58,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 69.88,
+            "cobertura_percentual": 90.22
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 62,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 74.7,
+            "cobertura_percentual": 90.22
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 66,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 79.52,
+            "cobertura_percentual": 90.22
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 70,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 84.34,
+            "cobertura_percentual": 90.22
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 74,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 89.16,
+            "cobertura_percentual": 90.22
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 78,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 93.98,
+            "cobertura_percentual": 90.22
+          }
+        }
       },
       {
         "ano": 2024,
@@ -201,7 +475,144 @@
           "in_patio_coberto": 1,
           "in_auditorio": 0
         },
-        "composicao_municipal": null
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          }
+        }
       }
     ]
   }
