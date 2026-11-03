@@ -11,6 +11,7 @@ import {
   ClassificacaoInfraestruturaModel,
   CodigoErroComparacaoMunicipioModel,
   ComparacaoEscolaMunicipioModel,
+  ComposicaoMunicipalIndicadorModel,
   DadosFiltrosModel,
   EscolaBuscaModel,
   ErroComparacaoMunicipioModel,
@@ -296,15 +297,34 @@ export function mapAnaliseTemporalResponseToModel(
   return { descricao: api.descricao, graficos, listaGraficos };
 }
 
-/** Lê `indicadores` quando a API passar a enviá-lo (campo proposto ao backend). */
-function lerIndicadores(ponto: object): Record<string, 0 | 1 | null> | null {
-  const bruto = (ponto as { indicadores?: unknown }).indicadores;
-  if (!bruto || typeof bruto !== 'object') return null;
+/** Só 1 e 0 são valores; qualquer outra coisa é ausência de dado, nunca zero. */
+function lerComposicaoEscola(
+  composicao: Record<string, unknown> | null | undefined,
+): Record<string, 0 | 1 | null> {
   const resultado: Record<string, 0 | 1 | null> = {};
-  for (const [chave, valor] of Object.entries(bruto)) {
+  for (const [chave, valor] of Object.entries(composicao ?? {})) {
     resultado[chave] = valor === 1 || valor === 0 ? valor : null;
   }
   return resultado;
+}
+
+function lerComposicaoMunicipal(
+  composicao: Record<string, ComposicaoMunicipalIndicadorModel> | null | undefined,
+): Record<string, ComposicaoMunicipalIndicadorModel> | null {
+  if (!composicao) return null;
+  return Object.fromEntries(
+    Object.entries(composicao).map(([chave, item]) => [
+      chave,
+      {
+        quantidade_presentes: item.quantidade_presentes,
+        quantidade_validos: item.quantidade_validos,
+        quantidade_sem_dados: item.quantidade_sem_dados,
+        quantidade_escolas_referencia: item.quantidade_escolas_referencia,
+        percentual_presentes: item.percentual_presentes ?? null,
+        cobertura_percentual: item.cobertura_percentual ?? null,
+      },
+    ]),
+  );
 }
 
 export function mapComparacaoEscolaMunicipioResponseToModel(
@@ -323,6 +343,7 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
       total_indicadores: metodologia.total_indicadores,
       cobertura_minima_percentual: metodologia.cobertura_minima_percentual ?? null,
       observacao: metodologia.observacao,
+      avisos: [...(metodologia.avisos ?? [])],
     },
     serie: serie.map(
       (ponto): PontoComparacaoMunicipioModel => ({
@@ -338,7 +359,10 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
         quantidade_pares_validos: ponto.quantidade_pares_validos,
         denominador_pares: ponto.denominador_pares,
         cobertura_pares_percentual: ponto.cobertura_pares_percentual ?? null,
-        indicadores: lerIndicadores(ponto),
+        registro_historico_disponivel: ponto.registro_historico_disponivel,
+        cobertura_indicadores_reduzida: ponto.cobertura_indicadores_reduzida,
+        composicao_escola: lerComposicaoEscola(ponto.composicao_escola),
+        composicao_municipal: lerComposicaoMunicipal(ponto.composicao_municipal),
       }),
     ),
   };
@@ -391,7 +415,10 @@ function criarPontoSemDados(ano: number, totalIndicadores: number): PontoCompara
     quantidade_pares_validos: 0,
     denominador_pares: 0,
     cobertura_pares_percentual: null,
-    indicadores: null,
+    registro_historico_disponivel: false,
+    cobertura_indicadores_reduzida: false,
+    composicao_escola: {},
+    composicao_municipal: null,
   };
 }
 

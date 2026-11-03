@@ -186,7 +186,11 @@ describe('montarComposicaoIndice', () => {
   it('converte 1, 0 e null em Sim, Não e Sem dados, na ordem da metodologia', () => {
     const ponto = {
       ...modelo.serie[0],
-      indicadores: { in_agua_potavel: 1 as const, in_biblioteca: 0 as const, in_auditorio: null },
+      composicao_escola: {
+        in_agua_potavel: 1 as const,
+        in_biblioteca: 0 as const,
+        in_auditorio: null,
+      },
     };
     const itens = montarComposicaoIndice(
       ponto,
@@ -200,7 +204,7 @@ describe('montarComposicaoIndice', () => {
     ]);
   });
 
-  it('mostra todos como "Sem dados" quando a API não envia os indicadores', () => {
+  it('mostra todos como "Sem dados" sem ponto (escola não selecionada ou ano sem registro)', () => {
     const itens = montarComposicaoIndice(null, INDICADORES_METODOLOGIA);
     expect(itens).toHaveLength(17);
     expect(itens.map((i) => i.label)).not.toContain('in_banheiro');

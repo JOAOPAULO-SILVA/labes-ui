@@ -125,11 +125,23 @@ export interface PontoComparacaoMunicipioModel {
   quantidade_pares_validos: number;
   denominador_pares: number;
   cobertura_pares_percentual: number | null;
-  /**
-   * Valor de cada indicador da escola no ano (1 = sim, 0 = não, null = sem dados).
-   * Ainda não enviado pela API (pedido ao backend); `null` quando ausente.
-   */
-  indicadores: Record<string, 0 | 1 | null> | null;
+  /** `false` quando o ano é uma lacuna: a escola não tem registro no Censo daquele ano. */
+  registro_historico_disponivel: boolean;
+  /** Alerta informativo: menos de 60% dos indicadores da escola são válidos no ano. */
+  cobertura_indicadores_reduzida: boolean;
+  /** Valor de cada indicador da escola no ano (1 = sim, 0 = não, null = sem dados). */
+  composicao_escola: Record<string, 0 | 1 | null>;
+  /** Contagens de cada indicador entre as demais escolas do município; `null` sem pares. */
+  composicao_municipal: Record<string, ComposicaoMunicipalIndicadorModel> | null;
+}
+
+export interface ComposicaoMunicipalIndicadorModel {
+  quantidade_presentes: number;
+  quantidade_validos: number;
+  quantidade_sem_dados: number;
+  quantidade_escolas_referencia: number;
+  percentual_presentes: number | null;
+  cobertura_percentual: number | null;
 }
 
 export interface MetodologiaComparacaoMunicipioModel {
@@ -140,6 +152,7 @@ export interface MetodologiaComparacaoMunicipioModel {
   total_indicadores: number;
   cobertura_minima_percentual: number | null;
   observacao: string;
+  avisos: string[];
 }
 
 export interface ComparacaoEscolaMunicipioModel {

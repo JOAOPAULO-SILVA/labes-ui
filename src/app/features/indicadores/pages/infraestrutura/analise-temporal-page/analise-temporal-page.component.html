@@ -21,10 +21,16 @@
       class="filtro-escola__municipio"
       [id]="'municipio-select'"
       label="Município"
-      placeholder="—"
+      placeholder="Todos os municípios"
+      searchPlaceholder="Buscar município"
+      emptyMessage="Nenhum município encontrado"
       [options]="opcoesMunicipio()"
-      [disabled]="true"
-      [ngModel]="escolaSelecionada()?.municipio ?? null"
+      [searchable]="true"
+      [showClear]="true"
+      [loading]="catalogo() === 'carregando'"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="municipioSelecionado()"
+      (ngModelChange)="onMunicipioChange($event)"
     />
   </section>
 
@@ -45,7 +51,11 @@
     <div class="detalhes">
       <app-composicao-indice
         [itens]="composicao().itens"
-        [indisponivel]="composicao().indisponivel"
+        [estado]="composicao().estado"
+        [ano]="composicao().ano"
+        [anos]="composicao().anos"
+        [resumo]="composicao().resumo"
+        (anoChange)="onAnoComposicaoChange($event)"
       />
 
       <section class="regras" aria-labelledby="regras-titulo">

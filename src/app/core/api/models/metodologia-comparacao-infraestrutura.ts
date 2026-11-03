@@ -13,6 +13,16 @@ export interface MetodologiaComparacaoInfraestrutura {
   anos: Array<number>;
 
   /**
+   * Ressalvas para exibição ao usuário.
+   */
+  avisos: Array<string>;
+
+  /**
+   * Baixa cobertura não bloqueia nem oculta os resultados.
+   */
+  bloqueia_resultado_por_cobertura: boolean;
+
+  /**
    * Sem corte mínimo de cobertura neste MVP.
    */
   cobertura_minima_percentual: null;
@@ -28,6 +38,21 @@ export interface MetodologiaComparacaoInfraestrutura {
   indicadores: Array<string>;
 
   /**
+   * Escopo do alerta, sem classificação municipal.
+   */
+  limiar_alerta_cobertura_escopo: 'escola_selecionada';
+
+  /**
+   * Limiar informativo de cobertura da escola.
+   */
+  limiar_alerta_cobertura_percentual: 60;
+
+  /**
+   * Origem da decisão sobre o limiar informativo.
+   */
+  limiar_alerta_cobertura_status: 'confirmado_req05';
+
+  /**
    * Ressalva metodológica para exibição.
    */
   observacao: string;
@@ -38,7 +63,12 @@ export interface MetodologiaComparacaoInfraestrutura {
   total_indicadores: 17;
 
   /**
+   * Estado da validação empírica da regra de cobertura.
+   */
+  validacao_empirica_cobertura_status: 'parcial_dad06_q8b';
+
+  /**
    * Versão da metodologia aplicada.
    */
-  versao: 'infraestrutura-v2-provisoria';
+  versao: 'infraestrutura-v3-provisoria';
 }

@@ -43,7 +43,16 @@ export const TEXTOS_COMPARACAO = {
     'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
   ],
   inicial: 'Selecione uma escola para visualizar a evolução temporal.',
-  composicaoIndisponivel: 'O detalhamento por indicador ainda não é fornecido pela API.',
+  composicao: {
+    titulo: 'Composição do índice',
+    ano: 'Ano',
+    carregando: 'Carregando a composição do índice…',
+    inicial: 'Selecione uma escola para visualizar a composição do índice.',
+    erro: 'Não foi possível carregar a composição do índice.',
+    semRegistro: (ano: number) => `A escola não possui registro no Censo Escolar de ${ano}.`,
+    resumo: (presentes: number, validos: number, total: number) =>
+      `${presentes} de ${validos} indicadores válidos presentes (${total} no total).`,
+  },
   valoresIndicador: { sim: 'Sim', nao: 'Não', sem_dados: 'Sem dados' },
   semHistorico:
     'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
@@ -283,8 +292,8 @@ export function montarResumoComparacao(
 }
 
 /**
- * Composição do índice no ano do resumo, na ordem da metodologia.
- * Sem `indicadores` na resposta, todos aparecem como "Sem dados".
+ * Composição do índice no ano escolhido, na ordem da metodologia.
+ * Indicador ausente ou nulo na resposta aparece como "Sem dados" (nunca como "Não").
  */
 export function montarComposicaoIndice(
   ponto: PontoComparacaoMunicipioModel | null,
@@ -292,7 +301,7 @@ export function montarComposicaoIndice(
   labels: Readonly<Record<string, string>> = LABELS_INDICADORES,
 ): ItemComposicaoIndiceModel[] {
   return chaves.map((chave) => {
-    const valor = ponto?.indicadores?.[chave];
+    const valor = ponto?.composicao_escola[chave];
     return {
       chave,
       label: labels[chave] ?? chave,
