@@ -120,7 +120,7 @@ describe('montarResumoComparacao', () => {
     expect(resumo[2].selo).toBe(true);
   });
 
-  it('diz "mesmo conjunto em todos os anos" só quando a quantidade não muda', () => {
+  it('diz Mesma quantidade de indicadores válidos em todos os anos só quando a quantidade não muda', () => {
     const constante = prepararSerieGraficoComparacao(
       modelo.serie.map((p) => ({ ...p, quantidade_indicadores_validos: 17 })),
     );
