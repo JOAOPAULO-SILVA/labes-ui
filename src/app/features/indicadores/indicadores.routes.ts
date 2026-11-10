@@ -100,6 +100,14 @@ export const indicadoresRoutes: Routes = [
       ),
   },
   {
+    // FE11: protótipo de descoberta com dados fictícios; propositalmente fora do menu.
+    path: 'infraestrutura/comparacao-multipla',
+    loadComponent: () =>
+      import('./pages/infraestrutura/comparacao-multipla-page/comparacao-multipla-page.component').then(
+        (m) => m.ComparacaoMultiplaPageComponent,
+      ),
+  },
+  {
     path: 'infraestrutura/escolas',
     loadComponent: () =>
       import('./pages/infraestrutura/escolas-page/escolas-page.component').then(

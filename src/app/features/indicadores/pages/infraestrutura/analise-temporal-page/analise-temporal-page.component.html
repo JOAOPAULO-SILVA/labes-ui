@@ -21,10 +21,16 @@
       class="filtro-escola__municipio"
       [id]="'municipio-select'"
       label="Município"
-      placeholder="—"
+      placeholder="Todos os municípios"
+      searchPlaceholder="Buscar município"
+      emptyMessage="Nenhum município encontrado"
       [options]="opcoesMunicipio()"
-      [disabled]="true"
-      [ngModel]="escolaSelecionada()?.municipio ?? null"
+      [searchable]="true"
+      [showClear]="true"
+      [loading]="catalogo() === 'carregando'"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="municipioSelecionado()"
+      (ngModelChange)="onMunicipioChange($event)"
     />
   </section>
 
@@ -45,13 +51,26 @@
     <div class="detalhes">
       <app-composicao-indice
         [itens]="composicao().itens"
-        [indisponivel]="composicao().indisponivel"
+        [estado]="composicao().estado"
+        [ano]="composicao().ano"
+        [anos]="composicao().anos"
+        [resumo]="composicao().resumo"
+        (anoChange)="onAnoComposicaoChange($event)"
+      />
+
+      <app-painel-territorial
+        [itens]="territorial().itens"
+        [estado]="territorial().estado"
+        [ano]="territorial().ano"
+        [municipio]="territorial().municipio"
+        [escolasReferencia]="territorial().escolasReferencia"
+        [coberturaReduzida]="territorial().coberturaReduzida"
       />
 
       <section class="regras" aria-labelledby="regras-titulo">
         <h2 id="regras-titulo">Regras metodológicas</h2>
         <ol>
-          @for (regra of textos.regras; track regra) {
+          @for (regra of regras(); track regra) {
             <li>{{ regra }}</li>
           }
         </ol>

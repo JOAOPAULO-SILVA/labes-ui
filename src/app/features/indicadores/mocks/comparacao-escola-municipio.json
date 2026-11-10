@@ -10,7 +10,7 @@
       "no_municipio": "Belém"
     },
     "metodologia": {
-      "versao": "infraestrutura-v2-provisoria",
+      "versao": "infraestrutura-v3-provisoria",
       "homologada": false,
       "anos": [2022, 2023, 2024, 2025],
       "indicadores": [
@@ -34,7 +34,16 @@
       ],
       "total_indicadores": 17,
       "cobertura_minima_percentual": null,
-      "observacao": "Metodologia provisória e não homologada. Os resultados não são indicadores oficiais."
+      "observacao": "Metodologia provisória e não homologada. Os resultados não são indicadores oficiais.",
+      "limiar_alerta_cobertura_percentual": 60.0,
+      "limiar_alerta_cobertura_status": "confirmado_req05",
+      "limiar_alerta_cobertura_escopo": "escola_selecionada",
+      "validacao_empirica_cobertura_status": "parcial_dad06_q8b",
+      "bloqueia_resultado_por_cobertura": false,
+      "avisos": [
+        "Esta análise utiliza metodologia de cálculo em caráter provisório e pendente de homologação.",
+        "O índice representa disponibilidade de infraestrutura, não qualidade escolar."
+      ]
     },
     "serie": [
       {
@@ -44,17 +53,180 @@
         "quantidade_indicadores_presentes": 13,
         "quantidade_indicadores_validos": 17,
         "total_indicadores": 17,
-        "cobertura_indicadores_percentual": 100.0,
+        "cobertura_indicadores_percentual": 100,
         "media_municipal_percentual": 64.71,
         "diferenca_pontos_percentuais": 11.76,
         "quantidade_pares_validos": 85,
         "denominador_pares": 94,
-        "cobertura_pares_percentual": 90.43
+        "cobertura_pares_percentual": 90.43,
+        "municipio_referencia": {
+          "co_municipio": 1501402,
+          "no_municipio": "Belém"
+        },
+        "registro_historico_disponivel": true,
+        "cobertura_indicadores_reduzida": false,
+        "composicao_escola": {
+          "in_agua_potavel": 1,
+          "in_energia_rede_publica": 1,
+          "in_esgoto_rede_publica": 1,
+          "in_lixo_servico_coleta": 1,
+          "in_banheiro": 1,
+          "in_banheiro_pne": 1,
+          "in_biblioteca": 0,
+          "in_sala_leitura": 1,
+          "in_laboratorio_ciencias": 1,
+          "in_laboratorio_informatica": 1,
+          "in_sala_multiuso": 1,
+          "in_sala_atendimento_especial": 1,
+          "in_cozinha": 0,
+          "in_refeitorio": 1,
+          "in_quadra_esportes": 1,
+          "in_patio_coberto": 0,
+          "in_auditorio": 0
+        },
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 12,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 14.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 17,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 20.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 21,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 24.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 25,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 29.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 29,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 34.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 34,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 40.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 38,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 44.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 42,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 49.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 46,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 54.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 51,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 60.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 55,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 64.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 59,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 69.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 63,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 74.12,
+            "cobertura_percentual": 90.43
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 68,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 80.0,
+            "cobertura_percentual": 90.43
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 72,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 84.71,
+            "cobertura_percentual": 90.43
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 76,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 89.41,
+            "cobertura_percentual": 90.43
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 80,
+            "quantidade_validos": 85,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 94,
+            "percentual_presentes": 94.12,
+            "cobertura_percentual": 90.43
+          }
+        }
       },
       {
         "ano": 2023,
         "situacao": "disponivel",
-        "indice_escola_percentual": 70.0,
+        "indice_escola_percentual": 70,
         "quantidade_indicadores_presentes": 7,
         "quantidade_indicadores_validos": 10,
         "total_indicadores": 17,
@@ -63,7 +235,170 @@
         "diferenca_pontos_percentuais": 7.5,
         "quantidade_pares_validos": 80,
         "denominador_pares": 92,
-        "cobertura_pares_percentual": 86.96
+        "cobertura_pares_percentual": 86.96,
+        "municipio_referencia": {
+          "co_municipio": 1501402,
+          "no_municipio": "Belém"
+        },
+        "registro_historico_disponivel": true,
+        "cobertura_indicadores_reduzida": true,
+        "composicao_escola": {
+          "in_agua_potavel": 1,
+          "in_energia_rede_publica": 1,
+          "in_esgoto_rede_publica": null,
+          "in_lixo_servico_coleta": null,
+          "in_banheiro": 1,
+          "in_banheiro_pne": 1,
+          "in_biblioteca": 1,
+          "in_sala_leitura": null,
+          "in_laboratorio_ciencias": 0,
+          "in_laboratorio_informatica": 0,
+          "in_sala_multiuso": 0,
+          "in_sala_atendimento_especial": 1,
+          "in_cozinha": 1,
+          "in_refeitorio": null,
+          "in_quadra_esportes": null,
+          "in_patio_coberto": null,
+          "in_auditorio": null
+        },
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 12,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 14.46,
+            "cobertura_percentual": 90.22
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 16,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 19.28,
+            "cobertura_percentual": 90.22
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 20,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 24.1,
+            "cobertura_percentual": 90.22
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 24,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 28.92,
+            "cobertura_percentual": 90.22
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 29,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 34.94,
+            "cobertura_percentual": 90.22
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 33,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 39.76,
+            "cobertura_percentual": 90.22
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 37,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 44.58,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 41,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 49.4,
+            "cobertura_percentual": 90.22
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 45,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 54.22,
+            "cobertura_percentual": 90.22
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 49,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 59.04,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 53,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 63.86,
+            "cobertura_percentual": 90.22
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 58,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 69.88,
+            "cobertura_percentual": 90.22
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 62,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 74.7,
+            "cobertura_percentual": 90.22
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 66,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 79.52,
+            "cobertura_percentual": 90.22
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 70,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 84.34,
+            "cobertura_percentual": 90.22
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 74,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 89.16,
+            "cobertura_percentual": 90.22
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 78,
+            "quantidade_validos": 83,
+            "quantidade_sem_dados": 9,
+            "quantidade_escolas_referencia": 92,
+            "percentual_presentes": 93.98,
+            "cobertura_percentual": 90.22
+          }
+        }
       },
       {
         "ano": 2024,
@@ -72,12 +407,35 @@
         "quantidade_indicadores_presentes": 0,
         "quantidade_indicadores_validos": 0,
         "total_indicadores": 17,
-        "cobertura_indicadores_percentual": 0.0,
+        "cobertura_indicadores_percentual": 0,
         "media_municipal_percentual": null,
         "diferenca_pontos_percentuais": null,
         "quantidade_pares_validos": 0,
         "denominador_pares": 0,
-        "cobertura_pares_percentual": null
+        "cobertura_pares_percentual": null,
+        "municipio_referencia": null,
+        "registro_historico_disponivel": false,
+        "cobertura_indicadores_reduzida": false,
+        "composicao_escola": {
+          "in_agua_potavel": null,
+          "in_energia_rede_publica": null,
+          "in_esgoto_rede_publica": null,
+          "in_lixo_servico_coleta": null,
+          "in_banheiro": null,
+          "in_banheiro_pne": null,
+          "in_biblioteca": null,
+          "in_sala_leitura": null,
+          "in_laboratorio_ciencias": null,
+          "in_laboratorio_informatica": null,
+          "in_sala_multiuso": null,
+          "in_sala_atendimento_especial": null,
+          "in_cozinha": null,
+          "in_refeitorio": null,
+          "in_quadra_esportes": null,
+          "in_patio_coberto": null,
+          "in_auditorio": null
+        },
+        "composicao_municipal": null
       },
       {
         "ano": 2025,
@@ -86,12 +444,175 @@
         "quantidade_indicadores_presentes": 12,
         "quantidade_indicadores_validos": 17,
         "total_indicadores": 17,
-        "cobertura_indicadores_percentual": 100.0,
+        "cobertura_indicadores_percentual": 100,
         "media_municipal_percentual": null,
         "diferenca_pontos_percentuais": null,
         "quantidade_pares_validos": 0,
         "denominador_pares": 96,
-        "cobertura_pares_percentual": 0.0
+        "cobertura_pares_percentual": 0,
+        "municipio_referencia": {
+          "co_municipio": 1501402,
+          "no_municipio": "Belém"
+        },
+        "registro_historico_disponivel": true,
+        "cobertura_indicadores_reduzida": false,
+        "composicao_escola": {
+          "in_agua_potavel": 0,
+          "in_energia_rede_publica": 1,
+          "in_esgoto_rede_publica": 1,
+          "in_lixo_servico_coleta": 1,
+          "in_banheiro": 1,
+          "in_banheiro_pne": 1,
+          "in_biblioteca": 1,
+          "in_sala_leitura": 1,
+          "in_laboratorio_ciencias": 1,
+          "in_laboratorio_informatica": 0,
+          "in_sala_multiuso": 1,
+          "in_sala_atendimento_especial": 0,
+          "in_cozinha": 0,
+          "in_refeitorio": 1,
+          "in_quadra_esportes": 1,
+          "in_patio_coberto": 1,
+          "in_auditorio": 0
+        },
+        "composicao_municipal": {
+          "in_agua_potavel": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_energia_rede_publica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_esgoto_rede_publica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_lixo_servico_coleta": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_banheiro": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_banheiro_pne": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_biblioteca": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_leitura": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_laboratorio_ciencias": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_laboratorio_informatica": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_multiuso": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_sala_atendimento_especial": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_cozinha": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_refeitorio": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_quadra_esportes": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_patio_coberto": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          },
+          "in_auditorio": {
+            "quantidade_presentes": 0,
+            "quantidade_validos": 0,
+            "quantidade_sem_dados": 96,
+            "quantidade_escolas_referencia": 96,
+            "percentual_presentes": null,
+            "cobertura_percentual": 0.0
+          }
+        }
       }
     ]
   }

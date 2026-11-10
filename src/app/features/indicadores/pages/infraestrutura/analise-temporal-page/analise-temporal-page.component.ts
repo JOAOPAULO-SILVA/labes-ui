@@ -16,7 +16,14 @@ import { AppSelectOption } from '../../../../../shared/ui/select/app-select.type
 import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
 import { ComparacaoGraficoComponent } from '../../../components/comparacao-grafico/comparacao-grafico.component';
 import { ComparacaoResumoComponent } from '../../../components/comparacao-resumo/comparacao-resumo.component';
-import { ComposicaoIndiceComponent } from '../../../components/composicao-indice/composicao-indice.component';
+import {
+  ComposicaoIndiceComponent,
+  EstadoComposicaoIndice,
+} from '../../../components/composicao-indice/composicao-indice.component';
+import {
+  EstadoPainelTerritorial,
+  PainelTerritorialComponent,
+} from '../../../components/painel-territorial/painel-territorial.component';
 import { PaginaCabecalhoComponent } from '../../../components/pagina-cabecalho/pagina-cabecalho.component';
 import { prepararSerieGraficoComparacao } from '../../../mappers/infraestrutura.mapper';
 import {
@@ -25,14 +32,34 @@ import {
   TEXTOS_COMPARACAO,
   classificarSerieComparacao,
   montarComposicaoIndice,
+  montarComposicaoTerritorial,
   selecionarPontoResumo,
 } from '../../../mappers/comparacao-grafico.mapper';
 import {
   ComparacaoEscolaMunicipioModel,
   ErroComparacaoMunicipioModel,
   EscolaBuscaModel,
+  ItemComposicaoIndiceModel,
+  ItemComposicaoTerritorialModel,
   SerieGraficoComparacaoModel,
 } from '../../../models/infraestrutura.models';
+
+interface TerritorialViewModel {
+  estado: EstadoPainelTerritorial;
+  itens: ItemComposicaoTerritorialModel[];
+  ano: number | null;
+  municipio: string | null;
+  escolasReferencia: number;
+  coberturaReduzida: boolean;
+}
+
+interface ComposicaoViewModel {
+  estado: EstadoComposicaoIndice;
+  itens: ItemComposicaoIndiceModel[];
+  ano: number | null;
+  anos: number[];
+  resumo: string | null;
+}
 
 type EstadoComparacao =
   | { tipo: 'inicial' }
@@ -61,6 +88,7 @@ const ERROS_RECUPERAVEIS = new Set(['internal_error', 'warehouse_unavailable', '
     ComparacaoResumoComponent,
     ComposicaoIndiceComponent,
     PaginaCabecalhoComponent,
+    PainelTerritorialComponent,
   ],
   templateUrl: './analise-temporal-page.component.html',
   styleUrl: './analise-temporal-page.component.scss',
@@ -77,19 +105,33 @@ export class AnaliseTemporalPageComponent implements OnInit {
   protected readonly escolas = signal<EscolaBuscaModel[]>([]);
   protected readonly catalogo = signal<EstadoCatalogo>('carregando');
   protected readonly escolaSelecionada = signal<EscolaBuscaModel | null>(null);
+  /** Município escolhido no filtro; restringe a lista de escolas. */
+  protected readonly municipioSelecionado = signal<string | null>(null);
   protected readonly estado = signal<EstadoComparacao>({ tipo: 'inicial' });
 
   protected readonly opcoesEscola = computed<AppSelectOption<number>[]>(() =>
-    this.escolas().map((e) => ({
+    this.escolasDoMunicipio().map((e) => ({
       label: e.nome,
       value: e.co_entidade,
       description: `${e.municipio ?? 'Município não informado'} · INEP ${e.co_entidade}`,
     })),
   );
-  protected readonly opcoesMunicipio = computed<AppSelectOption<string>[]>(() => {
-    const municipio = this.escolaSelecionada()?.municipio;
-    return municipio ? [{ label: municipio, value: municipio }] : [];
+  protected readonly escolasDoMunicipio = computed(() => {
+    const municipio = this.municipioSelecionado();
+    const escolas = this.escolas();
+    return municipio ? escolas.filter((e) => e.municipio === municipio) : escolas;
   });
+  protected readonly opcoesMunicipio = computed<AppSelectOption<string>[]>(() =>
+    [
+      ...new Set(
+        this.escolas()
+          .map((e) => e.municipio)
+          .filter((m): m is string => !!m),
+      ),
+    ]
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((m) => ({ label: m, value: m })),
+  );
 
   /** Série exibida nos cartões e no gráfico; nula fora do estado de sucesso com dados. */
   protected readonly serie = computed(() => {
@@ -116,15 +158,93 @@ export class AnaliseTemporalPageComponent implements OnInit {
     return e.tipo === 'erro' && ERROS_RECUPERAVEIS.has(e.erro.codigo) ? 'Tentar novamente' : null;
   });
 
-  protected readonly composicao = computed(() => {
+  /**
+   * Regras fixas da interface seguidas dos avisos de `metodologia.avisos` (BE09 §15).
+   * Antes da resposta, usa os dois avisos equivalentes do REQ-04.
+   */
+  protected readonly regras = computed(() => {
     const e = this.estado();
-    const serie = this.serie();
-    const ponto = serie ? selecionarPontoResumo(serie) : null;
-    const chaves =
-      e.tipo === 'sucesso' ? e.comparacao.metodologia.indicadores : INDICADORES_METODOLOGIA;
+    const avisos = e.tipo === 'sucesso' ? e.comparacao.metodologia.avisos : [];
+    const fixas = this.textos.regras.slice(0, 3);
+    return avisos.length > 0 ? [...fixas, ...avisos] : [...this.textos.regras];
+  });
+
+  /** Ano escolhido no seletor da composição; `null` usa o último ano disponível. */
+  protected readonly anoComposicao = signal<number | null>(null);
+
+  /** Ano e ponto da série usados pelas duas composições; `null` fora do estado de sucesso. */
+  private readonly pontoSelecionado = computed(() => {
+    const e = this.estado();
+    if (e.tipo !== 'sucesso') return null;
+    const ano =
+      this.anoComposicao() ?? selecionarPontoResumo(e.serie)?.ano ?? e.serie.anos.at(-1) ?? null;
+    return { ano, ponto: e.serie.pontos.find((p) => p.ano === ano) ?? null };
+  });
+
+  protected readonly territorial = computed<TerritorialViewModel>(() => {
+    const e = this.estado();
+    const vazio = {
+      itens: [],
+      ano: null,
+      municipio: null,
+      escolasReferencia: 0,
+      coberturaReduzida: false,
+    };
+    if (e.tipo !== 'sucesso') {
+      const estado: EstadoPainelTerritorial =
+        e.tipo === 'carregando' ? 'carregando' : e.tipo === 'erro' ? 'erro' : 'inicial';
+      return { ...vazio, estado };
+    }
+
+    const { ano, ponto } = this.pontoSelecionado()!;
+    if (!ponto || !ponto.registro_historico_disponivel || !ponto.municipio_referencia) {
+      return { ...vazio, estado: 'sem_registro', ano };
+    }
+    const itens = montarComposicaoTerritorial(ponto, e.comparacao.metodologia.indicadores);
     return {
-      itens: montarComposicaoIndice(ponto, chaves),
-      indisponivel: ponto !== null && ponto.indicadores === null,
+      estado: itens.length > 0 && ponto.denominador_pares > 0 ? 'pronto' : 'sem_pares',
+      itens,
+      ano,
+      municipio: ponto.municipio_referencia.no_municipio,
+      escolasReferencia: ponto.denominador_pares,
+      coberturaReduzida: ponto.cobertura_indicadores_reduzida,
+    };
+  });
+
+  protected readonly composicao = computed<ComposicaoViewModel>(() => {
+    const e = this.estado();
+    if (e.tipo !== 'sucesso') {
+      const estado: EstadoComposicaoIndice =
+        e.tipo === 'carregando' ? 'carregando' : e.tipo === 'erro' ? 'erro' : 'inicial';
+      return {
+        estado,
+        itens: montarComposicaoIndice(null, INDICADORES_METODOLOGIA),
+        ano: null,
+        anos: [],
+        resumo: null,
+      };
+    }
+
+    const anos = e.serie.anos;
+    const { ano, ponto } = this.pontoSelecionado()!;
+    const comRegistro = ponto !== null && ponto.registro_historico_disponivel;
+    const t = this.textos.composicao;
+
+    return {
+      estado: comRegistro ? 'pronto' : 'sem_registro',
+      itens: montarComposicaoIndice(
+        comRegistro ? ponto : null,
+        e.comparacao.metodologia.indicadores,
+      ),
+      ano,
+      anos,
+      resumo: comRegistro
+        ? t.resumo(
+            ponto.quantidade_indicadores_presentes,
+            ponto.quantidade_indicadores_validos,
+            ponto.total_indicadores,
+          )
+        : null,
     };
   });
 
@@ -164,13 +284,27 @@ export class AnaliseTemporalPageComponent implements OnInit {
     }
   }
 
+  /** Escola de outro município é desmarcada; a mesma escola continua selecionada. */
+  protected onMunicipioChange(municipio: string | null): void {
+    this.municipioSelecionado.set(municipio);
+    const escola = this.escolaSelecionada();
+    if (escola && municipio && escola.municipio !== municipio) this.limpar();
+  }
+
   protected selecionar(escola: EscolaBuscaModel): void {
     this.escolaSelecionada.set(escola);
+    if (escola.municipio) this.municipioSelecionado.set(escola.municipio);
+    this.anoComposicao.set(null);
     this.selecao$.next(escola);
+  }
+
+  protected onAnoComposicaoChange(ano: number): void {
+    this.anoComposicao.set(ano);
   }
 
   protected limpar(): void {
     this.escolaSelecionada.set(null);
+    this.anoComposicao.set(null);
     this.selecao$.next(null);
   }
 

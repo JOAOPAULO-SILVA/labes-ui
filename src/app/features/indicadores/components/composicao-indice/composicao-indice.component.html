@@ -1,15 +1,60 @@
-<section class="composicao" aria-labelledby="composicao-titulo">
-  <h2 id="composicao-titulo">Composição do índice</h2>
-  <ul>
-    @for (item of itens(); track item.chave) {
-      <li [class]="'composicao__item composicao__item--' + item.valor">
-        <i [class]="'pi ' + icones[item.valor]" aria-hidden="true"></i>
-        <span class="composicao__label">{{ item.label }}</span>
-        <span class="composicao__valor">{{ textos.valoresIndicador[item.valor] }}</span>
-      </li>
+<section
+  class="composicao"
+  aria-labelledby="composicao-titulo"
+  [attr.aria-busy]="estado() === 'carregando'"
+>
+  <header class="composicao__cabecalho">
+    <h2 id="composicao-titulo">
+      {{ textos.composicao.titulo }}
+      @if (ano() !== null && estado() !== 'inicial') {
+        <span class="composicao__ano-titulo">· {{ ano() }}</span>
+      }
+    </h2>
+    @if (opcoesAno().length > 0) {
+      <app-select
+        class="composicao__ano"
+        [id]="'composicao-ano-select'"
+        [label]="textos.composicao.ano"
+        size="sm"
+        [options]="opcoesAno()"
+        [disabled]="estado() === 'carregando'"
+        [ngModel]="ano()"
+        (ngModelChange)="onAnoChange($event)"
+      />
     }
-  </ul>
-  @if (indisponivel()) {
-    <p class="composicao__aviso">{{ textos.composicaoIndisponivel }}</p>
+  </header>
+
+  @switch (estado()) {
+    @case ('carregando') {
+      <ul class="composicao__lista composicao__lista--carregando" aria-hidden="true">
+        @for (item of itens(); track item.chave) {
+          <li class="composicao__item composicao__item--skeleton"></li>
+        }
+      </ul>
+      <p class="sr-only" role="status">{{ textos.composicao.carregando }}</p>
+    }
+    @case ('pronto') {
+      <ul class="composicao__lista">
+        @for (item of itens(); track item.chave) {
+          <li [class]="'composicao__item composicao__item--' + item.valor">
+            <i [class]="'pi ' + icones[item.valor]" aria-hidden="true"></i>
+            <span class="composicao__label" [title]="item.label">{{ item.label }}</span>
+            <span class="composicao__valor">{{ textos.valoresIndicador[item.valor] }}</span>
+          </li>
+        }
+      </ul>
+      @if (resumo()) {
+        <p class="composicao__resumo">{{ resumo() }}</p>
+      }
+    }
+    @default {
+      <p
+        class="composicao__mensagem"
+        [class.composicao__mensagem--erro]="estado() === 'erro'"
+        [attr.role]="estado() === 'erro' ? 'alert' : null"
+      >
+        {{ mensagem() }}
+      </p>
+    }
   }
 </section>

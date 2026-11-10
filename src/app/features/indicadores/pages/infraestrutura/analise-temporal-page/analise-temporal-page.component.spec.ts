@@ -7,7 +7,6 @@ import { ComparacaoInfraestruturaResponse } from '../../../../../core/api/models
 import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
 import { mapComparacaoEscolaMunicipioResponseToModel } from '../../../mappers/infraestrutura.mapper';
 import comparacaoMock from '../../../mocks/comparacao-escola-municipio.json';
-import comparacaoComIndicadoresMock from '../../../mocks/comparacao-escola-municipio-com-indicadores.json';
 import {
   ComparacaoEscolaMunicipioModel,
   EscolaBuscaModel,
@@ -21,7 +20,12 @@ const ESCOLA_A: EscolaBuscaModel = {
   dependencia: null,
   localizacao: null,
 };
-const ESCOLA_B: EscolaBuscaModel = { ...ESCOLA_A, co_entidade: 15054321, nome: 'EMEF Outra' };
+const ESCOLA_B: EscolaBuscaModel = {
+  ...ESCOLA_A,
+  co_entidade: 15054321,
+  nome: 'EMEF Outra',
+  municipio: 'Ananindeua',
+};
 const MODELO = mapComparacaoEscolaMunicipioResponseToModel(
   comparacaoMock as ComparacaoInfraestruturaResponse,
 );
@@ -36,6 +40,8 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       onEscolaChange(co: number | null): void;
       tentarNovamente(): void;
     };
+  const composicaoPagina = () =>
+    fixture.componentInstance as unknown as { onAnoComposicaoChange(ano: number): void };
   const el = () => fixture.nativeElement as HTMLElement;
   const texto = () => el().textContent ?? '';
   const valoresCartoes = () =>
@@ -91,7 +97,32 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     });
 
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
-    expect(instancia.opcoesMunicipio()).toEqual([{ label: 'Belém', value: 'Belém' }]);
+    expect(
+      (
+        fixture.componentInstance as unknown as { municipioSelecionado(): string | null }
+      ).municipioSelecionado(),
+    ).toBe('Belém');
+  });
+
+  it('filtra as escolas pelo município e desmarca escola de outro município', () => {
+    const instancia = fixture.componentInstance as unknown as {
+      opcoesEscola(): { value: number }[];
+      opcoesMunicipio(): { label: string }[];
+      onMunicipioChange(m: string | null): void;
+      escolaSelecionada(): EscolaBuscaModel | null;
+    };
+    expect(instancia.opcoesMunicipio().map((m) => m.label)).toEqual(['Ananindeua', 'Belém']);
+
+    instancia.onMunicipioChange('Ananindeua');
+    expect(instancia.opcoesEscola().map((e) => e.value)).toEqual([ESCOLA_B.co_entidade]);
+
+    pagina().onEscolaChange(ESCOLA_B.co_entidade);
+    instancia.onMunicipioChange('Belém');
+    expect(instancia.escolaSelecionada()).toBeNull();
+    expect(instancia.opcoesEscola().map((e) => e.value)).toEqual([ESCOLA_A.co_entidade]);
+
+    instancia.onMunicipioChange(null);
+    expect(instancia.opcoesEscola()).toHaveLength(2);
   });
 
   it('mostra carregamento e depois o resultado', () => {
@@ -166,28 +197,158 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     expect(el().querySelector('plotly-plot')).toBeNull();
   });
 
-  it('avisa que a API ainda não detalha os indicadores', () => {
+  const itensComposicao = (classe: string) =>
+    el().querySelectorAll(`.composicao__item--${classe}`).length;
+
+  it('mostra carregamento e erro também na composição', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    fixture.detectChanges();
+    expect(el().querySelector('.composicao')?.getAttribute('aria-busy')).toBe('true');
+    expect(itensComposicao('skeleton')).toBe(17);
+
+    respostas.get(15012345)!.error({ codigo: 'internal_error', mensagem: 'Erro.' });
+    fixture.detectChanges();
+    expect(texto()).toContain('Não foi possível carregar a composição do índice.');
+    expect(el().querySelectorAll('.composicao__item')).toHaveLength(0);
+  });
+
+  it('renderiza os 17 indicadores reais do último ano: 1 = Sim, 0 = Não', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
     respostas.get(15012345)!.next(MODELO);
     fixture.detectChanges();
 
-    expect(texto()).toContain('O detalhamento por indicador ainda não é fornecido pela API.');
-    expect(texto()).toContain('Água potável');
+    expect(el().querySelector('#composicao-titulo')?.textContent).toContain('2025');
+    expect(el().querySelectorAll('.composicao__item')).toHaveLength(17);
+    expect(itensComposicao('sim')).toBe(12);
+    expect(itensComposicao('nao')).toBe(5);
+    expect(texto()).toContain('12 de 17 indicadores válidos presentes (17 no total).');
   });
 
-  it('preenche a composição quando a resposta traz os indicadores (contrato proposto)', () => {
-    const comIndicadores = mapComparacaoEscolaMunicipioResponseToModel(
-      comparacaoComIndicadoresMock as unknown as ComparacaoInfraestruturaResponse,
-    );
+  it('atualiza a composição ao trocar o ano, com NULL como Sem dados', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
-    respostas.get(15012345)!.next(comIndicadores);
+    respostas.get(15012345)!.next(MODELO);
+    composicaoPagina().onAnoComposicaoChange(2023);
     fixture.detectChanges();
 
-    const itens = el().querySelectorAll('.composicao__item');
-    expect(itens).toHaveLength(17);
-    expect(el().querySelectorAll('.composicao__item--sim')).toHaveLength(12);
-    expect(el().querySelectorAll('.composicao__item--nao')).toHaveLength(5);
-    expect(texto()).not.toContain('O detalhamento por indicador ainda não é fornecido pela API.');
+    expect(itensComposicao('sim')).toBe(7);
+    expect(itensComposicao('nao')).toBe(3);
+    expect(itensComposicao('sem_dados')).toBe(7);
+    expect(texto()).toContain('Sem dados');
+  });
+
+  it('informa ano sem registro da escola em vez de mostrar indicadores', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(MODELO);
+    composicaoPagina().onAnoComposicaoChange(2024);
+    fixture.detectChanges();
+
+    expect(texto()).toContain('A escola não possui registro no Censo Escolar de 2024.');
+    expect(el().querySelectorAll('.composicao__item')).toHaveLength(0);
+  });
+
+  it('volta ao último ano ao trocar de escola', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(MODELO);
+    composicaoPagina().onAnoComposicaoChange(2023);
+    pagina().onEscolaChange(ESCOLA_B.co_entidade);
+    respostas.get(15054321)!.next(MODELO);
+    fixture.detectChanges();
+
+    expect(el().querySelector('#composicao-titulo')?.textContent).toContain('2025');
+  });
+
+  describe('painel territorial (FE10)', () => {
+    const territorial = () => el().querySelector('.territorial') as HTMLElement;
+    const textoTerritorial = () => territorial().textContent ?? '';
+    const carregar = (ano?: number) => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      respostas.get(15012345)!.next(MODELO);
+      if (ano) composicaoPagina().onAnoComposicaoChange(ano);
+      fixture.detectChanges();
+    };
+
+    it('mostra os mesmos indicadores, na mesma ordem, da composição da escola', () => {
+      carregar(2022);
+      const escola = [...el().querySelectorAll('.composicao__label')].map((e) => e.textContent);
+      const municipio = [...territorial().querySelectorAll('.territorial__label')].map(
+        (e) => e.textContent,
+      );
+      expect(municipio).toHaveLength(17);
+      expect(municipio).toEqual(escola);
+    });
+
+    it('explicita município e ano e mostra presentes, válidos, percentual e sem dados', () => {
+      carregar(2022);
+      expect(textoTerritorial()).toContain('Belém · 2022');
+      expect(textoTerritorial()).toContain('94 escolas de referência');
+      const primeiro = territorial().querySelector('.territorial__item')!;
+      expect(primeiro.textContent).toContain('12 de 85');
+      expect(primeiro.textContent).toContain('14,12%');
+      expect(primeiro.textContent).toContain('9 sem dados');
+      expect(primeiro.getAttribute('title')).toContain('9 sem informação');
+      expect(primeiro.getAttribute('title')).toContain('cobertura do indicador: 90,43%');
+    });
+
+    it('exibe aviso de cobertura baixa sem ocultar os dados nem tratá-lo como homologado', () => {
+      carregar(2023);
+      expect(territorial().querySelector('.territorial__aviso')).not.toBeNull();
+      expect(territorial().querySelectorAll('.territorial__item')).toHaveLength(17);
+      expect(textoTerritorial()).toContain('provisório');
+      expect(textoTerritorial()).not.toMatch(/homologado pelo professor|limite aprovado/i);
+    });
+
+    it('não exibe o aviso quando a cobertura da escola não é baixa', () => {
+      carregar(2022);
+      expect(territorial().querySelector('.territorial__aviso')).toBeNull();
+    });
+
+    it('mostra Sem dados no percentual quando nenhuma escola tem informação válida', () => {
+      carregar(2025);
+      expect(territorial().querySelector('.territorial__barra--sem-dados')).not.toBeNull();
+      expect(territorial().querySelector('.territorial__barra span')).toBeNull();
+      expect(territorial().querySelector('.territorial__percentual')?.textContent).toBe(
+        'Sem dados',
+      );
+    });
+
+    it('informa ausência de pares quando não há outras escolas', () => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      respostas.get(15012345)!.next({
+        ...MODELO,
+        serie: MODELO.serie.map((p) => ({
+          ...p,
+          composicao_municipal: null,
+          denominador_pares: 0,
+        })),
+      });
+      composicaoPagina().onAnoComposicaoChange(2022);
+      fixture.detectChanges();
+      expect(textoTerritorial()).toContain(
+        'Não há outras escolas do município com registro em 2022 para compor a referência.',
+      );
+    });
+
+    it('informa ano sem registro, carregamento e erro', () => {
+      carregar(2024);
+      expect(textoTerritorial()).toContain('Sem referência territorial em 2024');
+
+      pagina().onEscolaChange(ESCOLA_B.co_entidade);
+      fixture.detectChanges();
+      expect(territorial().getAttribute('aria-busy')).toBe('true');
+
+      respostas.get(15054321)!.error({ codigo: 'internal_error', mensagem: 'Erro.' });
+      fixture.detectChanges();
+      expect(textoTerritorial()).toContain('Não foi possível carregar a composição territorial.');
+    });
+  });
+
+  it('exibe os avisos de metodologia.avisos no fim das regras após a resposta (BE09 §15)', () => {
+    pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    respostas.get(15012345)!.next(MODELO);
+    fixture.detectChanges();
+    const regras = [...el().querySelectorAll('.regras li')].map((li) => li.textContent?.trim());
+    expect(regras.slice(-2)).toEqual(MODELO.metodologia.avisos);
+    expect(regras).toHaveLength(5);
   });
 
   it('volta ao estado inicial ao limpar', () => {

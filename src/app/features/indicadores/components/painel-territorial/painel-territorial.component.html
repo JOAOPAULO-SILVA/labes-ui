@@ -1,0 +1,90 @@
+<section
+  class="territorial"
+  aria-labelledby="territorial-titulo"
+  [attr.aria-busy]="estado() === 'carregando'"
+>
+  <header class="territorial__cabecalho">
+    <h2 id="territorial-titulo">{{ textos.titulo }}</h2>
+    @if (municipio() && ano() !== null && estado() !== 'carregando') {
+      <p class="territorial__referencia">
+        <i class="pi pi-map-marker" aria-hidden="true"></i>
+        <strong>{{ textos.referencia(municipio()!, ano()!) }}</strong>
+        @if (estado() === 'pronto') {
+          <span>· {{ textos.escolasReferencia(escolasReferencia()) }}</span>
+        }
+      </p>
+    }
+  </header>
+
+  @if (mostrarAviso()) {
+    <div class="territorial__aviso" role="note">
+      <i class="pi pi-exclamation-triangle" aria-hidden="true"></i>
+      <div>
+        <p>{{ textos.avisoCobertura(ano()!) }}</p>
+        <p class="territorial__aviso-nota">{{ textos.avisoCoberturaNota }}</p>
+      </div>
+    </div>
+  }
+
+  @switch (estado()) {
+    @case ('carregando') {
+      <ul class="territorial__lista" aria-hidden="true">
+        @for (i of skeleton(); track i) {
+          <li class="territorial__item territorial__item--skeleton"></li>
+        }
+      </ul>
+      <p class="sr-only" role="status">{{ textos.carregando }}</p>
+    }
+    @case ('pronto') {
+      <dl class="territorial__legenda">
+        <div>
+          <dt><span class="territorial__amostra territorial__amostra--barra"></span></dt>
+          <dd>{{ textos.legenda.percentual }}</dd>
+        </div>
+        <div>
+          <dt>p de v</dt>
+          <dd>{{ textos.legenda.presentes }} de {{ textos.legenda.validos }}</dd>
+        </div>
+        <div>
+          <dt>n sem dados</dt>
+          <dd>{{ textos.legenda.semDados }}</dd>
+        </div>
+      </dl>
+
+      <ul class="territorial__lista">
+        @for (linha of linhas(); track linha.chave) {
+          <li class="territorial__item" [title]="linha.tooltip">
+            <span class="sr-only">{{ linha.tooltip }}</span>
+            <div class="territorial__linha" aria-hidden="true">
+              <span class="territorial__label">{{ linha.label }}</span>
+              <span class="territorial__percentual">{{ linha.percentualTexto }}</span>
+            </div>
+            <div
+              class="territorial__barra"
+              [class.territorial__barra--sem-dados]="linha.percentual === null"
+              aria-hidden="true"
+            >
+              @if (linha.percentual !== null) {
+                <span [style.width.%]="linha.percentual"></span>
+              }
+            </div>
+            <div class="territorial__contagens" aria-hidden="true">
+              <span>{{ textos.contagem(linha.presentes, linha.validos) }}</span>
+              <span class="territorial__sem-dados">{{ textos.semDados(linha.semDados) }}</span>
+            </div>
+          </li>
+        }
+      </ul>
+      <p class="territorial__nota">{{ textos.nota }}</p>
+    }
+    @default {
+      <p
+        class="territorial__mensagem"
+        [class.territorial__mensagem--erro]="estado() === 'erro'"
+        [attr.role]="estado() === 'erro' ? 'alert' : null"
+      >
+        {{ mensagem() }}
+      </p>
+    }
+  }
+</section>

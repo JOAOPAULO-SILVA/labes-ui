@@ -48,22 +48,27 @@ describe('mapComparacaoEscolaMunicipioResponseToModel', () => {
     expect(semPares.media_municipal_percentual).toBeNull();
   });
 
-  it('lê os indicadores por ano quando a API os envia', () => {
-    const comIndicadores = structuredClone(resposta) as ComparacaoInfraestruturaResponse;
-    (comIndicadores.data.serie[0] as unknown as Record<string, unknown>)['indicadores'] = {
-      in_agua_potavel: 1,
-      in_biblioteca: 0,
-      in_auditorio: null,
-      in_invalido: 'x',
-    };
-    const [ponto] = mapComparacaoEscolaMunicipioResponseToModel(comIndicadores).serie;
-    expect(ponto.indicadores).toEqual({
-      in_agua_potavel: 1,
-      in_biblioteca: 0,
-      in_auditorio: null,
-      in_invalido: null,
-    });
-    expect(modelo.serie[0].indicadores).toBeNull();
+  it('lê a composição da escola por ano sem converter nulo em zero', () => {
+    const ponto2023 = modelo.serie.find((p) => p.ano === 2023)!;
+    const valores = Object.values(ponto2023.composicao_escola);
+    expect(valores).toHaveLength(17);
+    expect(valores.filter((v) => v === 1)).toHaveLength(7);
+    expect(valores.filter((v) => v === 0)).toHaveLength(3);
+    expect(valores.filter((v) => v === null)).toHaveLength(7);
+    expect(ponto2023.cobertura_indicadores_reduzida).toBe(true);
+  });
+
+  it('trata valores fora de 0/1 como ausência de dado', () => {
+    const copia = structuredClone(resposta) as ComparacaoInfraestruturaResponse;
+    (copia.data.serie[0].composicao_escola as Record<string, unknown>)['in_agua_potavel'] = 'x';
+    const [ponto] = mapComparacaoEscolaMunicipioResponseToModel(copia).serie;
+    expect(ponto.composicao_escola['in_agua_potavel']).toBeNull();
+  });
+
+  it('marca o ano sem registro histórico', () => {
+    const lacuna = modelo.serie.find((p) => p.ano === 2024)!;
+    expect(lacuna.registro_historico_disponivel).toBe(false);
+    expect(lacuna.composicao_municipal).toBeNull();
   });
 
   it('não altera a resposta original', () => {

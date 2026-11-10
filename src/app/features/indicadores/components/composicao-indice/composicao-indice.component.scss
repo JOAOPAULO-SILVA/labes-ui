@@ -10,14 +10,32 @@
   background: #fff;
 }
 
+.composicao__cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 16px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
 h2 {
-  margin: 0 0 12px;
+  margin: 0;
   color: #17213d;
   font-size: 0.96rem;
   font-weight: 900;
 }
 
-ul {
+.composicao__ano-titulo {
+  color: var(--sie-color-muted);
+  font-weight: 700;
+}
+
+.composicao__ano {
+  width: 120px;
+}
+
+.composicao__lista {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px 12px;
@@ -26,6 +44,7 @@ ul {
   list-style: none;
 }
 
+/* Cor reforça, mas não substitui, o ícone e o texto de cada valor (WCAG 1.4.1). */
 .composicao__item {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -37,8 +56,9 @@ ul {
   color: var(--sie-color-text);
   font-size: 0.82rem;
 
-  .pi {
-    color: #8aa0bf;
+  .pi,
+  .composicao__valor {
+    font-weight: 700;
   }
 
   &--sim {
@@ -51,8 +71,32 @@ ul {
     }
   }
 
-  &--nao .pi {
-    color: #8a96a8;
+  &--nao {
+    border-color: #f5c2bd;
+    background: #fef3f2;
+
+    .pi,
+    .composicao__valor {
+      color: #b42318;
+    }
+  }
+
+  &--sem_dados {
+    border-color: #dde3ea;
+    background: #f4f6f9;
+
+    .pi,
+    .composicao__valor {
+      color: #5d6b7e;
+    }
+  }
+
+  &--skeleton {
+    height: 34px;
+    border-color: #edf1f6;
+    background: linear-gradient(90deg, #f1f4f8 25%, #e6ebf2 50%, #f1f4f8 75%);
+    background-size: 200% 100%;
+    animation: composicao-skeleton 1.2s ease-in-out infinite;
   }
 }
 
@@ -63,19 +107,51 @@ ul {
 }
 
 .composicao__valor {
-  color: var(--sie-color-muted);
   font-size: 0.78rem;
-  font-weight: 700;
 }
 
-.composicao__aviso {
+.composicao__resumo,
+.composicao__mensagem {
   margin: 12px 0 0;
   color: var(--sie-color-muted);
   font-size: 0.8rem;
 }
 
+.composicao__mensagem {
+  padding: 16px;
+  border: 1px dashed #dce5ef;
+  border-radius: 6px;
+  text-align: center;
+
+  &--erro {
+    border-color: #f5c2bd;
+    color: #b42318;
+  }
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@keyframes composicao-skeleton {
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .composicao__item--skeleton {
+    animation: none;
+  }
+}
+
 @media (max-width: 620px) {
-  ul {
+  .composicao__lista {
     grid-template-columns: 1fr;
   }
 }

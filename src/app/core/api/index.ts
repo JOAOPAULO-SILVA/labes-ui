@@ -21,6 +21,7 @@ export type { AppSchemasInfraestruturaMapaPonto } from './models/app-schemas-inf
 export type { AppSchemasInfraestruturaMapaResponse } from './models/app-schemas-infraestrutura-mapa-response';
 export type { ComparacaoInfraestruturaData } from './models/comparacao-infraestrutura-data';
 export type { ComparacaoInfraestruturaResponse } from './models/comparacao-infraestrutura-response';
+export type { ComposicaoMunicipalIndicadorInfraestrutura } from './models/composicao-municipal-indicador-infraestrutura';
 export type { ErroComparacaoInfraestruturaResponse } from './models/erro-comparacao-infraestrutura-response';
 export type { EscolaComparacaoInfraestrutura } from './models/escola-comparacao-infraestrutura';
 export type { FiltrosData } from './models/filtros-data';

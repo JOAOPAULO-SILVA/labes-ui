@@ -1,6 +1,7 @@
 import { PlotlyFigure } from '../../../core/api/models/plotly-figure';
 import {
   ItemComposicaoIndiceModel,
+  ItemComposicaoTerritorialModel,
   PontoComparacaoMunicipioModel,
   SerieGraficoComparacaoModel,
 } from '../models/infraestrutura.models';
@@ -43,7 +44,53 @@ export const TEXTOS_COMPARACAO = {
     'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
   ],
   inicial: 'Selecione uma escola para visualizar a evolução temporal.',
-  composicaoIndisponivel: 'O detalhamento por indicador ainda não é fornecido pela API.',
+  composicao: {
+    titulo: 'Composição do índice',
+    ano: 'Ano',
+    carregando: 'Carregando a composição do índice…',
+    inicial: 'Selecione uma escola para visualizar a composição do índice.',
+    erro: 'Não foi possível carregar a composição do índice.',
+    semRegistro: (ano: number) => `A escola não possui registro no Censo Escolar de ${ano}.`,
+    resumo: (presentes: number, validos: number, total: number) =>
+      `${presentes} de ${validos} indicadores válidos presentes (${total} no total).`,
+  },
+  territorial: {
+    titulo: 'Composição das demais escolas do município',
+    referencia: (municipio: string, ano: number) => `${municipio} · ${ano}`,
+    escolasReferencia: (n: number) =>
+      n === 1
+        ? '1 escola de referência (exclui a selecionada)'
+        : `${n} escolas de referência (exclui a selecionada)`,
+    carregando: 'Carregando a composição territorial…',
+    inicial: 'Selecione uma escola para visualizar a composição das demais escolas do município.',
+    erro: 'Não foi possível carregar a composição territorial.',
+    semRegistro: (ano: number) =>
+      `Sem referência territorial em ${ano}: a escola não possui registro no Censo Escolar desse ano.`,
+    semPares: (ano: number) =>
+      `Não há outras escolas do município com registro em ${ano} para compor a referência.`,
+    legenda: {
+      presentes: 'Escolas com o recurso',
+      validos: 'escolas com informação válida',
+      percentual: '% de presença entre as válidas',
+      semDados: 'Escolas sem informação (fora do cálculo)',
+    },
+    contagem: (presentes: number, validos: number) => `${presentes} de ${validos}`,
+    semDados: (n: number) => `${n} sem dados`,
+    tooltip: (
+      label: string,
+      presentes: number,
+      validos: number,
+      semDados: number,
+      pct: string,
+      cobertura: string,
+    ) =>
+      `${label}: ${presentes} de ${validos} escolas com informação válida possuem o recurso (${pct}). ${semDados} sem informação; cobertura do indicador: ${cobertura}.`,
+    nota: 'A presença por indicador não equivale à média municipal do índice, que é calculada escola a escola.',
+    avisoCobertura: (ano: number) =>
+      `Cobertura baixa: menos de 60% dos indicadores da escola selecionada têm informação válida em ${ano}. Os dados continuam exibidos e devem ser interpretados com cautela.`,
+    avisoCoberturaNota:
+      'O limite de 60% é informativo e provisório; ele não bloqueia a análise e a metodologia ainda não foi homologada.',
+  },
   valoresIndicador: { sim: 'Sim', nao: 'Não', sem_dados: 'Sem dados' },
   semHistorico:
     'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
@@ -283,8 +330,8 @@ export function montarResumoComparacao(
 }
 
 /**
- * Composição do índice no ano do resumo, na ordem da metodologia.
- * Sem `indicadores` na resposta, todos aparecem como "Sem dados".
+ * Composição do índice no ano escolhido, na ordem da metodologia.
+ * Indicador ausente ou nulo na resposta aparece como "Sem dados" (nunca como "Não").
  */
 export function montarComposicaoIndice(
   ponto: PontoComparacaoMunicipioModel | null,
@@ -292,11 +339,37 @@ export function montarComposicaoIndice(
   labels: Readonly<Record<string, string>> = LABELS_INDICADORES,
 ): ItemComposicaoIndiceModel[] {
   return chaves.map((chave) => {
-    const valor = ponto?.indicadores?.[chave];
+    const valor = ponto?.composicao_escola[chave];
     return {
       chave,
       label: labels[chave] ?? chave,
       valor: valor === 1 ? 'sim' : valor === 0 ? 'nao' : 'sem_dados',
+    };
+  });
+}
+
+/**
+ * Contagens das demais escolas do município no ano, na mesma ordem e com os mesmos
+ * rótulos da composição da escola. Sem composição municipal, devolve lista vazia.
+ */
+export function montarComposicaoTerritorial(
+  ponto: PontoComparacaoMunicipioModel | null,
+  chaves: readonly string[],
+  labels: Readonly<Record<string, string>> = LABELS_INDICADORES,
+): ItemComposicaoTerritorialModel[] {
+  const composicao = ponto?.composicao_municipal;
+  if (!composicao) return [];
+  return chaves.map((chave) => {
+    const item = composicao[chave];
+    return {
+      chave,
+      label: labels[chave] ?? chave,
+      presentes: item?.quantidade_presentes ?? 0,
+      validos: item?.quantidade_validos ?? 0,
+      semDados: item?.quantidade_sem_dados ?? 0,
+      referencia: item?.quantidade_escolas_referencia ?? 0,
+      percentual: item?.percentual_presentes ?? null,
+      cobertura: item?.cobertura_percentual ?? null,
     };
   });
 }
