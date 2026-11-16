@@ -6,6 +6,7 @@ import { ComparacaoInfraestruturaResponse } from '../../../core/api/models/compa
 import { FiltrosResponse } from '../../../core/api/models/filtros-response';
 import { PainelEscolasResponse } from '../../../core/api/models/painel-escolas-response';
 import { PainelResponse } from '../../../core/api/models/painel-response';
+import { VisaoTemporalMunicipioInfraestruturaResponse } from '../../../core/api/models/visao-temporal-municipio-infraestrutura-response';
 import {
   AnaliseTemporalModel,
   ClassificacaoInfraestruturaModel,
@@ -29,6 +30,7 @@ import {
   PainelInfraestruturaModel,
   PontoComparacaoMunicipioModel,
   SerieGraficoComparacaoModel,
+  VisaoTemporalMunicipioModel,
 } from '../models/infraestrutura.models';
 
 function normalizarTexto(texto: string | null | undefined): string {
@@ -325,6 +327,49 @@ function lerComposicaoMunicipal(
       },
     ]),
   );
+}
+
+export function mapVisaoTemporalMunicipioResponseToModel(
+  api: VisaoTemporalMunicipioInfraestruturaResponse,
+): VisaoTemporalMunicipioModel {
+  const { filtros, municipio, metodologia, serie } = api.data;
+  return {
+    filtros: {
+      rede_ensino: [...(filtros.rede_ensino ?? [])],
+      ano_inicio: filtros.ano_inicio,
+      ano_fim: filtros.ano_fim,
+      indicadores: [...filtros.indicadores],
+    },
+    municipio: { co_municipio: municipio.co_municipio, no_municipio: municipio.no_municipio },
+    metodologia: {
+      versao: metodologia.versao,
+      homologada: metodologia.homologada,
+      formula: metodologia.formula,
+      avisos: [...(metodologia.avisos ?? [])],
+    },
+    serie: [...serie]
+      .sort((a, b) => a.ano - b.ano)
+      .map((ponto) => ({
+        ano: ponto.ano,
+        situacao: ponto.situacao,
+        cobertura_media_percentual: ponto.cobertura_media_percentual ?? null,
+        quantidade_escolas: ponto.quantidade_escolas,
+        quantidade_escolas_com_informacao: ponto.quantidade_escolas_com_informacao,
+        quantidade_escolas_sem_dados: ponto.quantidade_escolas_sem_dados,
+        indicadores: Object.fromEntries(
+          Object.entries(ponto.indicadores ?? {}).map(([chave, ind]) => [
+            chave,
+            {
+              quantidade_presentes: ind.quantidade_presentes,
+              quantidade_validos: ind.quantidade_validos,
+              quantidade_sem_dados: ind.quantidade_sem_dados,
+              percentual_presentes: ind.percentual_presentes ?? null,
+              cobertura_percentual: ind.cobertura_percentual ?? null,
+            },
+          ]),
+        ),
+      })),
+  };
 }
 
 export function mapComparacaoEscolaMunicipioResponseToModel(

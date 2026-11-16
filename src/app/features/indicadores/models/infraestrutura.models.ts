@@ -230,6 +230,45 @@ export interface ErroComparacaoMunicipioModel {
   mensagem: string;
 }
 
+/** Recorte da visão Município (BE15): rede, anos e os indicadores escolhidos. */
+export interface RecorteMunicipioModel extends RecorteTemporalModel {
+  indicadores: string[];
+}
+
+/**
+ * Situação de um ano na visão Município (BE15). `denominador_zero`: nenhuma escola elegível
+ * no recorte, o que não é cobertura de 0%. `sem_dados`: há escolas, mas nenhuma com
+ * informação válida nos indicadores escolhidos.
+ */
+export type SituacaoAnoMunicipioModel = 'com_dados' | 'sem_dados' | 'denominador_zero';
+
+export interface IndicadorAnoMunicipioModel {
+  quantidade_presentes: number;
+  quantidade_validos: number;
+  quantidade_sem_dados: number;
+  percentual_presentes: number | null;
+  cobertura_percentual: number | null;
+}
+
+/** Ano da série municipal. `null` na cobertura é ausência de cálculo, nunca zero. */
+export interface PontoMunicipioModel {
+  ano: number;
+  situacao: SituacaoAnoMunicipioModel;
+  cobertura_media_percentual: number | null;
+  quantidade_escolas: number;
+  quantidade_escolas_com_informacao: number;
+  quantidade_escolas_sem_dados: number;
+  indicadores: Record<string, IndicadorAnoMunicipioModel>;
+}
+
+export interface VisaoTemporalMunicipioModel {
+  /** Recorte efetivamente aplicado pela API. */
+  filtros: RecorteMunicipioModel;
+  municipio: { co_municipio: number; no_municipio: string };
+  metodologia: { versao: string; homologada: boolean; formula: string; avisos: string[] };
+  serie: PontoMunicipioModel[];
+}
+
 export interface GeoJsonGeometryModel {
   type: string;
   coordinates: unknown;

@@ -13,7 +13,7 @@
     <div class="grafico-vazio">
       @if (carregando()) {
         <div class="skeleton-grafico"></div>
-        <span class="sr-only">Carregando dados da escola selecionada.</span>
+        <span class="sr-only">{{ descricaoCarregando() }}</span>
       } @else {
         <div class="grafico-vazio__mensagem" [attr.role]="erro() ? 'alert' : null">
           <i class="pi pi-chart-line" aria-hidden="true"></i>
@@ -24,10 +24,11 @@
         </div>
       }
       <ul class="legenda" aria-hidden="true">
-        <li><span class="legenda__marca legenda__marca--escola"></span>{{ textos.serieEscola }}</li>
-        <li>
-          <span class="legenda__marca legenda__marca--municipio"></span>{{ textos.serieMunicipio }}
-        </li>
+        @for (item of legenda(); track item.rotulo) {
+          <li>
+            <span [class]="'legenda__marca legenda__marca--' + item.marca"></span>{{ item.rotulo }}
+          </li>
+        }
       </ul>
     </div>
   }

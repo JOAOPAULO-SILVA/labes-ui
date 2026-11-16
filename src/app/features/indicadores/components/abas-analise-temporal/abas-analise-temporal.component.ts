@@ -65,6 +65,17 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       border-bottom-color: var(--sie-color-primary);
       color: var(--sie-color-primary);
     }
+    /* Celular: as duas abas dividem a largura e o rótulo quebra em vez de rolar. */
+    @media (max-width: 480px) {
+      .abas__aba {
+        flex: 1 1 0;
+        justify-content: center;
+        padding: 10px 8px;
+        font-size: 0.85rem;
+        white-space: normal;
+        text-align: center;
+      }
+    }
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

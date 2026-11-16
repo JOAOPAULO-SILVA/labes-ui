@@ -10,11 +10,16 @@ import type {
   GetPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet$Params,
   GetPainelInfraestruturaInfraestruturaPainelGet$Params,
 } from '../../../core/api';
-import { getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet } from '../../../core/api/functions';
+import {
+  getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet,
+  getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet,
+} from '../../../core/api/functions';
+import type { GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Params } from '../../../core/api/fn/infraestrutura/get-visao-temporal-municipio-infraestrutura-infraestrutura-analise-temporal-municipios-co-municipio-get';
 import {
   AnaliseTemporalModel,
   ComparacaoEscolaMunicipioModel,
   EscolaBuscaModel,
+  RecorteMunicipioModel,
   RecorteTemporalModel,
   DadosFiltrosModel,
   EscolaGeoEntryModel,
@@ -25,6 +30,7 @@ import {
   MapaPontoModel,
   PainelEscolasModel,
   PainelInfraestruturaModel,
+  VisaoTemporalMunicipioModel,
 } from '../models/infraestrutura.models';
 import {
   mapAnaliseTemporalResponseToModel,
@@ -37,6 +43,7 @@ import {
   mapMapaResponseToModel,
   mapPainelEscolasResponseToModel,
   mapPainelResponseToModel,
+  mapVisaoTemporalMunicipioResponseToModel,
 } from '../mappers/infraestrutura.mapper';
 
 type MapaMunicipalComPontosModel = {
@@ -241,6 +248,34 @@ export class InfraestruturaFacade {
     ).pipe(
       map((resposta) => mapComparacaoEscolaMunicipioResponseToModel(resposta.body)),
       catchError((erro: unknown) => throwError(() => mapComparacaoEscolaMunicipioErro(erro))),
+    );
+  }
+
+  /**
+   * Visão Município (BE15, FE16): série anual da cobertura média da rede municipal no
+   * recorte. Cancelar a inscrição cancela a requisição HTTP.
+   */
+  obterVisaoTemporalMunicipio(
+    coMunicipio: number,
+    recorte: RecorteMunicipioModel,
+  ): Observable<VisaoTemporalMunicipioModel> {
+    type Params =
+      GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Params;
+    return getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet(
+      this.http,
+      this.api.rootUrl,
+      {
+        co_municipio: coMunicipio,
+        ...(recorte.rede_ensino.length ? { rede_ensino: recorte.rede_ensino } : {}),
+        ano_inicio: recorte.ano_inicio,
+        ano_fim: recorte.ano_fim,
+        indicadores: recorte.indicadores as Params['indicadores'],
+      },
+    ).pipe(
+      map((resposta) => mapVisaoTemporalMunicipioResponseToModel(resposta.body)),
+      catchError((erro: unknown) =>
+        throwError(() => mapComparacaoEscolaMunicipioErro(erro, 'municipio')),
+      ),
     );
   }
 

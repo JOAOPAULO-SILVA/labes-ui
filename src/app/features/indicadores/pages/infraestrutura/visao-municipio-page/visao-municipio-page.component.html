@@ -1,0 +1,104 @@
+<div class="analise-temporal-page">
+  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
+  <app-abas-analise-temporal />
+
+  <app-filtros-analise
+    [campos]="camposMunicipio"
+    [acoes]="acoesMunicipio"
+    [compacto]="telaCompacta()"
+    [resumo]="resumoFiltros()"
+    [aplicarDesabilitado]="aplicarDesabilitado()"
+    (abrir)="reiniciarRascunho()"
+    (aplicar)="aplicar()"
+    (descartar)="reiniciarRascunho()"
+  />
+
+  <ng-template #camposMunicipio>
+    <app-select
+      [id]="'municipio-alvo-select'"
+      [label]="textos.filtros.municipio"
+      [placeholder]="textos.filtros.municipioPlaceholder"
+      searchPlaceholder="Buscar município"
+      emptyMessage="Nenhum município encontrado"
+      [options]="opcoesMunicipio()"
+      [searchable]="true"
+      [showClear]="true"
+      [loading]="catalogo() === 'carregando'"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="rascunho().municipio"
+      (ngModelChange)="alterar({ municipio: $event })"
+    />
+    <app-select
+      [id]="'rede-municipio-alvo-select'"
+      [label]="textos.filtros.rede"
+      placeholder="Todas"
+      [options]="opcoesRede"
+      [showClear]="true"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="rascunho().rede"
+      (ngModelChange)="alterar({ rede: $event })"
+    />
+    <app-range-slider
+      [label]="textos.filtros.anos"
+      [hint]="textos.filtros.anosDica"
+      [min]="limitesAnos()[0]"
+      [max]="limitesAnos()[1]"
+      [minimoInclusivo]="2"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="rascunho().anos ?? limitesAnos()"
+      (ngModelChange)="onAnosChange($event)"
+    />
+    <app-multi-select
+      [label]="textos.filtros.indicadores"
+      [options]="opcoesIndicadores"
+      [resumo]="resumoIndicadores()"
+      [hint]="textos.filtros.indicadoresDica"
+      [error]="erroIndicadores()"
+      [disabled]="catalogo() !== 'pronto'"
+      [ngModel]="rascunho().indicadores"
+      (ngModelChange)="alterar({ indicadores: $event ?? [] })"
+    />
+  </ng-template>
+
+  <ng-template #acoesMunicipio>
+    <app-button label="Limpar" variant="secondary" (clicked)="limpar()" />
+    <app-button label="Aplicar" [disabled]="aplicarDesabilitado()" (clicked)="aplicar()" />
+  </ng-template>
+
+  <div class="comparacao-conteudo" aria-live="polite">
+    <app-comparacao-resumo
+      [itensProntos]="resumoItens()"
+      [avisoPronto]="avisoResumo()"
+      [carregando]="carregando()"
+    />
+
+    <p class="dica-grafico">{{ dicaGrafico() }}</p>
+
+    <app-comparacao-grafico
+      [titulo]="textos.tituloGrafico"
+      [figuraPronta]="figura()"
+      [legenda]="legenda"
+      [carregando]="carregando()"
+      descricaoCarregando="Carregando dados do município selecionado."
+      [mensagem]="mensagemGrafico()"
+      [erro]="erroGrafico()"
+      [acaoLabel]="acaoGrafico()"
+      (acao)="tentarNovamente()"
+    />
+
+    <app-cobertura-anos
+      [cartoes]="cartoesAno()"
+      [comoInterpretar]="comoInterpretar()"
+      [carregando]="carregando()"
+    />
+
+    <section class="regras" aria-labelledby="regras-municipio-titulo">
+      <h2 id="regras-municipio-titulo">Regras metodológicas</h2>
+      <ol>
+        @for (regra of textos.regras; track regra) {
+          <li>{{ regra }}</li>
+        }
+      </ol>
+    </section>
+  </div>
+</div>

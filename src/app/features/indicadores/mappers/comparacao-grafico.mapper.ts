@@ -155,7 +155,7 @@ export const LABELS_INDICADORES: Readonly<Record<string, string>> = {
   in_auditorio: 'Auditório',
 };
 
-const CORES = {
+export const CORES = {
   escola: '#075be8',
   municipio: '#1aa36f',
   texto: '#26395f',
@@ -198,75 +198,97 @@ export function montarLinhasTooltip(ponto: PontoComparacaoMunicipioModel): strin
   ];
 }
 
+/** Uma linha da evolução temporal: rótulos nos pontos e lacunas sem ligação. */
+export function montarLinhaTemporal(
+  nome: string,
+  anos: readonly number[],
+  y: readonly (number | null)[],
+  cor: string,
+  tooltips: readonly string[],
+  posicaoRotulo: 'top center' | 'bottom center' = 'top center',
+): Record<string, unknown> {
+  return {
+    type: 'scatter',
+    mode: 'lines+markers+text',
+    name: nome,
+    x: [...anos],
+    y: [...y],
+    text: y.map((v) => (v === null ? '' : formatarPercentual(v))),
+    textposition: posicaoRotulo,
+    textfont: { color: cor, size: 11 },
+    connectgaps: false,
+    line: { color: cor, width: 3 },
+    marker: { color: cor, size: 9 },
+    customdata: [...tooltips],
+    hovertemplate: '%{customdata}<extra></extra>',
+  };
+}
+
+/** Layout comum das duas abas: eixo Y de 0% a 100% e um tique por ano do intervalo. */
+export function montarLayoutTemporal(
+  anos: readonly number[],
+  eixoY: string = TEXTOS_COMPARACAO.eixoY,
+): Record<string, unknown> {
+  return {
+    autosize: true,
+    paper_bgcolor: 'rgba(0,0,0,0)',
+    plot_bgcolor: 'rgba(0,0,0,0)',
+    font: {
+      family: "Inter, 'Segoe UI', Roboto, Arial, sans-serif",
+      color: CORES.texto,
+      size: 12,
+    },
+    margin: { l: 56, r: 18, t: 16, b: 96, pad: 0 },
+    hovermode: 'closest',
+    hoverlabel: { bgcolor: '#ffffff', bordercolor: '#cfdbea', font: { color: CORES.texto } },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.28 },
+    showlegend: true,
+    xaxis: {
+      title: { text: TEXTOS_COMPARACAO.eixoX },
+      tickmode: 'array',
+      tickvals: [...anos],
+      ticktext: anos.map(String),
+      range: anos.length ? [anos[0] - 0.3, anos[anos.length - 1] + 0.3] : undefined,
+      showgrid: false,
+      zeroline: false,
+    },
+    yaxis: {
+      title: { text: eixoY },
+      range: [0, 100],
+      fixedrange: true,
+      ticksuffix: '%',
+      dtick: 20,
+      gridcolor: CORES.grade,
+      zeroline: false,
+    },
+  };
+}
+
 /**
  * Figura Plotly Escola × Média municipal: duas linhas identificadas, eixo de 0% a 100%,
  * anos crescentes, rótulos nos pontos e `connectgaps: false` para não ligar lacunas.
  */
 export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): PlotlyFigure {
   const tooltips = serie.pontos.map((ponto) => montarLinhasTooltip(ponto).join('<br>'));
-  const rotulos = (valores: (number | null)[]) =>
-    valores.map((v) => (v === null ? '' : formatarPercentual(v)));
-
-  const linha = (
-    nome: string,
-    y: (number | null)[],
-    cor: string,
-    posicaoRotulo: 'top center' | 'bottom center',
-  ) => ({
-    type: 'scatter',
-    mode: 'lines+markers+text',
-    name: nome,
-    x: serie.anos,
-    y,
-    text: rotulos(y),
-    textposition: posicaoRotulo,
-    textfont: { color: cor, size: 11 },
-    connectgaps: false,
-    line: { color: cor, width: 3 },
-    marker: { color: cor, size: 9 },
-    customdata: tooltips,
-    hovertemplate: '%{customdata}<extra></extra>',
-  });
-
   return {
     data: [
-      linha(TEXTOS_COMPARACAO.serieEscola, serie.escola, CORES.escola, 'bottom center'),
-      linha(TEXTOS_COMPARACAO.serieMunicipio, serie.mediaMunicipal, CORES.municipio, 'top center'),
+      montarLinhaTemporal(
+        TEXTOS_COMPARACAO.serieEscola,
+        serie.anos,
+        serie.escola,
+        CORES.escola,
+        tooltips,
+        'bottom center',
+      ),
+      montarLinhaTemporal(
+        TEXTOS_COMPARACAO.serieMunicipio,
+        serie.anos,
+        serie.mediaMunicipal,
+        CORES.municipio,
+        tooltips,
+      ),
     ],
-    layout: {
-      autosize: true,
-      paper_bgcolor: 'rgba(0,0,0,0)',
-      plot_bgcolor: 'rgba(0,0,0,0)',
-      font: {
-        family: "Inter, 'Segoe UI', Roboto, Arial, sans-serif",
-        color: CORES.texto,
-        size: 12,
-      },
-      margin: { l: 56, r: 18, t: 16, b: 96, pad: 0 },
-      hovermode: 'closest',
-      hoverlabel: { bgcolor: '#ffffff', bordercolor: '#cfdbea', font: { color: CORES.texto } },
-      legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.28 },
-      xaxis: {
-        title: { text: TEXTOS_COMPARACAO.eixoX },
-        tickmode: 'array',
-        tickvals: serie.anos,
-        ticktext: serie.anos.map(String),
-        range: serie.anos.length
-          ? [serie.anos[0] - 0.3, serie.anos[serie.anos.length - 1] + 0.3]
-          : undefined,
-        showgrid: false,
-        zeroline: false,
-      },
-      yaxis: {
-        title: { text: TEXTOS_COMPARACAO.eixoY },
-        range: [0, 100],
-        fixedrange: true,
-        ticksuffix: '%',
-        dtick: 20,
-        gridcolor: CORES.grade,
-        zeroline: false,
-      },
-    },
+    layout: montarLayoutTemporal(serie.anos),
   };
 }
 
