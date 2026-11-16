@@ -83,6 +83,7 @@ describe('InfraestruturaFacade.obterComparacaoEscolaMunicipio', () => {
         co_entidade: 15012345,
         nome: 'EMEF Exemplo',
         municipio: 'Belém',
+        codigoMunicipio: null,
         dependencia: null,
         localizacao: null,
       },

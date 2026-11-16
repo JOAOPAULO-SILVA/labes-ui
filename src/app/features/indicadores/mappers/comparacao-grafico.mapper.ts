@@ -7,9 +7,9 @@ import {
 } from '../models/infraestrutura.models';
 
 /**
- * Textos do gráfico, do tooltip, do resumo e dos estados.
- * Fontes, em ordem de precedência: REQ-04 SP3-11 (definição de textos, legenda, tooltip e
- * limitações), protótipo "v1 escolas x municipios" (Figma) e contrato BE-05 v2.
+ * Textos do gráfico, do tooltip, do resumo e dos estados da aba "Análise por Escola".
+ * Fontes, em ordem de precedência: REQ07 (Sprint 5, substitui REQ06/REQ-04), protótipo
+ * "v3 escolas x municipios" (Figma) e contratos BE13/BE15.
  */
 export const TEXTOS_COMPARACAO = {
   titulo: 'Infraestrutura • Análise Temporal',
@@ -18,6 +18,9 @@ export const TEXTOS_COMPARACAO = {
   tituloGrafico: 'Percentual de recursos de infraestrutura disponíveis — evolução temporal',
   dicaGrafico:
     'Passe o cursor sobre os pontos da linha do gráfico para visualizar o resumo detalhado daquele ano.',
+  /** Celular (REQ07 §2.4): o tooltip abre com um toque, não com o cursor. */
+  dicaGraficoToque:
+    'Clique sobre os pontos da linha do gráfico para visualizar o resumo detalhado daquele ano.',
   serieEscola: 'Escola selecionada',
   serieMunicipio: 'Média das demais escolas do município',
   eixoY: 'Percentual de recursos',
@@ -32,16 +35,18 @@ export const TEXTOS_COMPARACAO = {
     indicadores: 'Indicadores válidos',
   },
   tooltip: {
+    ano: 'Ano',
     escola: 'Escola selecionada',
     municipio: 'Demais escolas do município',
     diferenca: 'Diferença',
   },
+  /** REQ07 §3, aba "Análise por Escola". */
   regras: [
     'Sim = 1 | Não = 0 | Sem informação = excluída do cálculo.',
-    'A referência municipal exclui a escola selecionada.',
+    'A referência municipal exclui a escola selecionada e considera a mesma rede.',
     'Todos os indicadores possuem o mesmo peso.',
+    'Esta análise utiliza metodologia de cálculo em caráter provisório e pendente de homologação.',
     'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
-    'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
   ],
   inicial: 'Selecione uma escola para visualizar a evolução temporal.',
   composicao: {
@@ -49,10 +54,19 @@ export const TEXTOS_COMPARACAO = {
     ano: 'Ano',
     carregando: 'Carregando a composição do índice…',
     inicial: 'Selecione uma escola para visualizar a composição do índice.',
-    erro: 'Não foi possível carregar a composição do índice.',
+    /** REQ07 §2.5/§2.8: a escola não tem nenhum dado válido no período (também usado em erro). */
+    semDados:
+      'Não existem dados de infraestrutura suficientes para preencher a composição de índices no período selecionado.',
     semRegistro: (ano: number) => `A escola não possui registro no Censo Escolar de ${ano}.`,
     resumo: (presentes: number, validos: number, total: number) =>
       `${presentes} de ${validos} indicadores válidos presentes (${total} no total).`,
+  },
+  /** REQ07 §2.10: abaixo da composição, uma linha por ano do intervalo. */
+  resumoAnos: {
+    titulo: 'Resumo da quantidade de indicadores em cada ano',
+    linha: (ano: number, presentes: number, validos: number, total: number) =>
+      `${ano} · ${presentes} de ${validos} indicadores válidos presentes (${total} no total)`,
+    semDados: (ano: number) => `${ano} · Sem dados`,
   },
   territorial: {
     titulo: 'Composição das demais escolas do município',
@@ -63,11 +77,13 @@ export const TEXTOS_COMPARACAO = {
         : `${n} escolas de referência (exclui a selecionada)`,
     carregando: 'Carregando a composição territorial…',
     inicial: 'Selecione uma escola para visualizar a composição das demais escolas do município.',
-    erro: 'Não foi possível carregar a composição territorial.',
+    /** REQ07 §2.6/§2.8: nenhum dado no período (também usado em erro). */
+    semDadosPeriodo:
+      'Não existem dados de infraestrutura suficientes para preencher a composição das demais escolas do município no período selecionado.',
     semRegistro: (ano: number) =>
       `Sem referência territorial em ${ano}: a escola não possui registro no Censo Escolar desse ano.`,
-    semPares: (ano: number) =>
-      `Não há outras escolas do município com registro em ${ano} para compor a referência.`,
+    /** REQ07 §2.8: denominador zero na referência municipal. */
+    semPares: 'Ausência de pares para calcular a referência municipal',
     legenda: {
       presentes: 'Escolas com o recurso',
       validos: 'escolas com informação válida',
@@ -92,8 +108,9 @@ export const TEXTOS_COMPARACAO = {
       'O limite de 60% é informativo e provisório; ele não bloqueia a análise e a metodologia ainda não foi homologada.',
   },
   valoresIndicador: { sim: 'Sim', nao: 'Não', sem_dados: 'Sem dados' },
+  /** REQ07 §2.8: estado sem dados do gráfico. */
   semHistorico:
-    'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
+    'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal deste item no período selecionado.',
 } as const;
 
 /** Os 17 indicadores da metodologia infraestrutura-v2-provisoria (contrato BE-05 v2). */
@@ -174,7 +191,7 @@ export function montarLinhasTooltip(ponto: PontoComparacaoMunicipioModel): strin
       ? TEXTOS_COMPARACAO.semDado
       : `${formatarPercentual(ponto.media_municipal_percentual)} (${ponto.quantidade_pares_validos} pares)`;
   return [
-    `<b>${ponto.ano}</b>`,
+    `<b>${t.ano}: ${ponto.ano}</b>`,
     `${t.escola}: ${escola}`,
     `${t.municipio}: ${municipio}`,
     `${t.diferenca}: ${formatarPontosPercentuais(ponto.diferenca_pontos_percentuais)}`,
@@ -253,12 +270,15 @@ export function montarFiguraComparacao(serie: SerieGraficoComparacaoModel): Plot
   };
 }
 
-/** Último ano em que a escola tem índice; sem nenhum, o último ano da série. */
+/**
+ * Ponto dos cartões de resumo: o último ano do intervalo selecionado, mesmo que seja uma
+ * lacuna (REQ07 §2.3 e §4; contrato BE15). Lacuna aparece como "Sem dados", nunca é
+ * preenchida com o ano anterior.
+ */
 export function selecionarPontoResumo(
   serie: SerieGraficoComparacaoModel,
 ): PontoComparacaoMunicipioModel | null {
-  const comDados = serie.pontos.filter((p) => p.indice_escola_percentual !== null);
-  return comDados.at(-1) ?? serie.pontos.at(-1) ?? null;
+  return serie.pontos.at(-1) ?? null;
 }
 
 export interface ItemResumoComparacaoModel {
@@ -289,7 +309,7 @@ export function montarResumoVazio(): ItemResumoComparacaoModel[] {
   ];
 }
 
-/** Os quatro cartões do protótipo, a partir do último ano disponível. */
+/** Os quatro cartões (REQ07 §2.3), a partir do último ano do intervalo selecionado. */
 export function montarResumoComparacao(
   serie: SerieGraficoComparacaoModel,
 ): ItemResumoComparacaoModel[] {
@@ -297,15 +317,12 @@ export function montarResumoComparacao(
   if (!ponto) return [];
 
   const r = TEXTOS_COMPARACAO.resumo;
-  const anosComDados = serie.pontos.filter((p) => p.indice_escola_percentual !== null);
-  const mesmoConjunto =
-    new Set(anosComDados.map((p) => p.quantidade_indicadores_validos)).size <= 1;
 
   return [
     {
       titulo: r.escola,
       valor: formatarPercentual(ponto.indice_escola_percentual),
-      descricao: `${ponto.quantidade_indicadores_presentes} de ${ponto.total_indicadores} recursos disponíveis`,
+      descricao: `${ponto.quantidade_indicadores_validos} de ${ponto.total_indicadores} indicadores válidos`,
       icone: ICONES_RESUMO.escola,
     },
     {
@@ -323,7 +340,6 @@ export function montarResumoComparacao(
     {
       titulo: r.indicadores,
       valor: String(ponto.quantidade_indicadores_validos),
-      descricao: mesmoConjunto ? 'mesmo conjunto em todos os anos' : 'varia entre os anos',
       icone: ICONES_RESUMO.indicadores,
     },
   ];
@@ -386,4 +402,22 @@ export function classificarSerieComparacao(
   if (serie.escola.every((valor) => valor === null)) return 'sem_historico';
   if (serie.mediaMunicipal.every((valor) => valor === null)) return 'sem_pares';
   return 'completa';
+}
+
+/**
+ * Linhas do "Resumo da quantidade de indicadores em cada ano" (REQ07 §2.10), uma por ano
+ * do intervalo. Ano sem registro da escola aparece como "Sem dados".
+ */
+export function montarResumoAnos(serie: SerieGraficoComparacaoModel): string[] {
+  const t = TEXTOS_COMPARACAO.resumoAnos;
+  return serie.pontos.map((p) =>
+    p.registro_historico_disponivel && p.quantidade_indicadores_validos > 0
+      ? t.linha(
+          p.ano,
+          p.quantidade_indicadores_presentes,
+          p.quantidade_indicadores_validos,
+          p.total_indicadores,
+        )
+      : t.semDados(p.ano),
+  );
 }

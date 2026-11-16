@@ -5,12 +5,15 @@ import { ItemComposicaoTerritorialModel } from '../../models/infraestrutura.mode
 
 /**
  * `sem_registro`: o ano é uma lacuna da escola (sem município de referência).
- * `sem_pares`: há município, mas nenhuma outra escola com registro no ano.
+ * `sem_pares`: há município, mas nenhuma outra escola com registro no ano (denominador zero).
+ * `sem_dados`: nenhum dado no período (REQ07 §2.6). `erro` usa os mesmos rótulos
+ * (REQ07 §2.8: só o aviso do gráfico muda).
  */
 export type EstadoPainelTerritorial =
   | 'inicial'
   | 'carregando'
   | 'erro'
+  | 'sem_dados'
   | 'sem_registro'
   | 'sem_pares'
   | 'pronto';
@@ -72,17 +75,21 @@ export class PainelTerritorialComponent {
       case 'inicial':
         return this.textos.inicial;
       case 'erro':
-        return this.textos.erro;
+      case 'sem_dados':
+        return this.textos.semDadosPeriodo;
       case 'sem_registro':
         return this.textos.semRegistro(ano);
       case 'sem_pares':
-        return this.textos.semPares(ano);
+        return this.textos.semPares;
       default:
         return null;
     }
   });
 
   protected readonly mostrarAviso = computed(
-    () => this.coberturaReduzida() && this.ano() !== null && this.estado() !== 'carregando',
+    () =>
+      this.coberturaReduzida() &&
+      this.ano() !== null &&
+      (this.estado() === 'pronto' || this.estado() === 'sem_pares'),
   );
 }

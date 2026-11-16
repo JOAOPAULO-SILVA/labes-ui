@@ -330,9 +330,14 @@ function lerComposicaoMunicipal(
 export function mapComparacaoEscolaMunicipioResponseToModel(
   api: ComparacaoInfraestruturaResponse,
 ): ComparacaoEscolaMunicipioModel {
-  const { escola, municipio, metodologia, serie } = api.data;
+  const { escola, municipio, metodologia, serie, filtros } = api.data;
 
   return {
+    filtros: {
+      rede_ensino: [...(filtros?.rede_ensino ?? [])],
+      ano_inicio: filtros?.ano_inicio ?? metodologia.anos[0],
+      ano_fim: filtros?.ano_fim ?? metodologia.anos[metodologia.anos.length - 1],
+    },
     escola: { co_entidade: escola.co_entidade, no_entidade: escola.no_entidade },
     municipio: { co_municipio: municipio.co_municipio, no_municipio: municipio.no_municipio },
     metodologia: {
@@ -374,23 +379,41 @@ export function mapComparacaoEscolaMunicipioResponseToModel(
   };
 }
 
-/** Mensagens dos estados de erro do protótipo (Figma), por código. */
-const MENSAGENS_ERRO_COMPARACAO: Record<CodigoErroComparacaoMunicipioModel, string> = {
-  not_found: 'Escola não encontrada na fonte consultada.',
-  validation_error: 'Erro de carregamento.',
-  internal_error: 'Falha na requisição. Por favor, tente novamente.',
-  warehouse_unavailable: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
-  network_error: 'Falha na requisição. Por favor, tente novamente.',
+/** Alvo da consulta: muda só o texto do 404 (REQ07 §2.8). */
+export type AlvoAnaliseTemporal = 'escola' | 'municipio';
+
+/** Textos de erro da REQ07 §2.8 (substituem os do REQ-04 da sprint 3). */
+const MENSAGENS_ERRO: Record<Exclude<CodigoErroComparacaoMunicipioModel, 'not_found'>, string> = {
+  internal_error: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
+  network_error: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
+  validation_error: 'Falha na requisição. Por favor, tente novamente.',
+  warehouse_unavailable: 'Erro de carregamento.',
+  source_data_inconsistent: 'Erro de carregamento.',
 };
 
-export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoMunicipioModel {
+const MENSAGEM_NAO_ENCONTRADO: Record<AlvoAnaliseTemporal, string> = {
+  escola: 'Escola não encontrada na fonte consultada.',
+  municipio: 'Município não encontrado na fonte consultada.',
+};
+
+const CODIGOS_API = new Set<string>([
+  'not_found',
+  'internal_error',
+  'warehouse_unavailable',
+  'source_data_inconsistent',
+]);
+
+export function mapComparacaoEscolaMunicipioErro(
+  erro: unknown,
+  alvo: AlvoAnaliseTemporal = 'escola',
+): ErroComparacaoMunicipioModel {
   const status = erro instanceof HttpErrorResponse ? erro.status : null;
   const corpo = erro instanceof HttpErrorResponse ? erro.error : null;
   const codigoApi =
     corpo && typeof corpo === 'object' && typeof corpo.code === 'string' ? corpo.code : null;
 
   let codigo: CodigoErroComparacaoMunicipioModel;
-  if (codigoApi && Object.hasOwn(MENSAGENS_ERRO_COMPARACAO, codigoApi)) {
+  if (codigoApi && CODIGOS_API.has(codigoApi)) {
     codigo = codigoApi as CodigoErroComparacaoMunicipioModel;
   } else if (status === 0) {
     codigo = 'network_error';
@@ -404,7 +427,8 @@ export function mapComparacaoEscolaMunicipioErro(erro: unknown): ErroComparacaoM
     codigo = 'internal_error';
   }
 
-  return { codigo, mensagem: MENSAGENS_ERRO_COMPARACAO[codigo] };
+  const mensagem = codigo === 'not_found' ? MENSAGEM_NAO_ENCONTRADO[alvo] : MENSAGENS_ERRO[codigo];
+  return { codigo, mensagem };
 }
 
 function criarPontoSemDados(ano: number, totalIndicadores: number): PontoComparacaoMunicipioModel {
@@ -468,6 +492,7 @@ export function mapEscolasParaBusca(entradas: EscolaGeoEntryModel[]): EscolaBusc
       co_entidade: entrada.co_entidade,
       nome: entrada.no_entidade.trim(),
       municipio: entrada.no_municipio ?? null,
+      codigoMunicipio: entrada.co_municipio ?? null,
       dependencia: entrada.no_tp_dependencia ?? null,
       localizacao: entrada.no_tp_localizacao ?? null,
     }))

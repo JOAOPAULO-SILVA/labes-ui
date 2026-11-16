@@ -78,11 +78,7 @@
       <p class="territorial__nota">{{ textos.nota }}</p>
     }
     @default {
-      <p
-        class="territorial__mensagem"
-        [class.territorial__mensagem--erro]="estado() === 'erro'"
-        [attr.role]="estado() === 'erro' ? 'alert' : null"
-      >
+      <p class="territorial__mensagem">
         {{ mensagem() }}
       </p>
     }

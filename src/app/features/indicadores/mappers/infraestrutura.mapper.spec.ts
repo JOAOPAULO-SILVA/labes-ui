@@ -82,17 +82,32 @@ describe('mapComparacaoEscolaMunicipioErro', () => {
   const httpErro = (status: number, error: unknown = null) =>
     new HttpErrorResponse({ status, error });
 
-  it('usa o código da API e o texto do protótipo', () => {
+  it('usa o código da API e o texto da REQ07 §2.8', () => {
     const erro = mapComparacaoEscolaMunicipioErro(
       httpErro(503, {
         code: 'warehouse_unavailable',
         message: 'Não foi possível consultar os dados de infraestrutura.',
       }),
     );
-    expect(erro).toEqual({
-      codigo: 'warehouse_unavailable',
-      mensagem: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
-    });
+    expect(erro).toEqual({ codigo: 'warehouse_unavailable', mensagem: 'Erro de carregamento.' });
+  });
+
+  it.each([
+    [500, null, 'Erro ao carregar os dados. A fonte de dados está indisponível.'],
+    [422, null, 'Falha na requisição. Por favor, tente novamente.'],
+    [503, null, 'Erro de carregamento.'],
+    [503, 'source_data_inconsistent', 'Erro de carregamento.'],
+    [404, null, 'Escola não encontrada na fonte consultada.'],
+  ])('status %i (code %s) usa o texto da REQ07: %s', (status, code, mensagem) => {
+    expect(
+      mapComparacaoEscolaMunicipioErro(httpErro(status, code ? { code } : null)).mensagem,
+    ).toBe(mensagem);
+  });
+
+  it('na aba Município, o 404 fala de município', () => {
+    expect(mapComparacaoEscolaMunicipioErro(httpErro(404), 'municipio').mensagem).toBe(
+      'Município não encontrado na fonte consultada.',
+    );
   });
 
   it.each([

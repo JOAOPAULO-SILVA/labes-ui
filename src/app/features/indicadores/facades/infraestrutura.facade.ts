@@ -15,6 +15,7 @@ import {
   AnaliseTemporalModel,
   ComparacaoEscolaMunicipioModel,
   EscolaBuscaModel,
+  RecorteTemporalModel,
   DadosFiltrosModel,
   EscolaGeoEntryModel,
   GeoJsonFeatureCollectionModel,
@@ -70,6 +71,7 @@ export class InfraestruturaFacade {
               longitude: Number(coordinates[0]) || 0,
               no_municipio:
                 properties['no_municipio'] == null ? null : String(properties['no_municipio']),
+              co_municipio: Number(properties['co_municipio']) || null,
               no_tp_dependencia:
                 properties['no_tp_dependencia'] == null
                   ? null
@@ -216,17 +218,26 @@ export class InfraestruturaFacade {
   }
 
   /**
-   * Série 2022–2025 da escola comparada à média municipal.
+   * Série da escola comparada à média das demais escolas do município (BE13), no recorte
+   * pedido: rede das escolas de referência e intervalo de anos. Sem recorte, a API usa o
+   * período padrão e todas as redes.
    * Diferente dos demais métodos, não troca falhas por resposta vazia:
    * o erro é propagado como `ErroComparacaoMunicipioModel` para a página exibi-lo.
    * Usa a função gerada (Observable) em vez do serviço (Promise) para que cancelar a
-   * inscrição — ao trocar de escola — também cancele a requisição HTTP em andamento.
+   * inscrição — ao trocar de escola ou de filtro — também cancele a requisição em andamento.
    */
-  obterComparacaoEscolaMunicipio(coEntidade: number): Observable<ComparacaoEscolaMunicipioModel> {
+  obterComparacaoEscolaMunicipio(
+    coEntidade: number,
+    recorte?: RecorteTemporalModel,
+  ): Observable<ComparacaoEscolaMunicipioModel> {
     return getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(
       this.http,
       this.api.rootUrl,
-      { co_entidade: coEntidade },
+      {
+        co_entidade: coEntidade,
+        ...(recorte?.rede_ensino.length ? { rede_ensino: recorte.rede_ensino } : {}),
+        ...(recorte ? { ano_inicio: recorte.ano_inicio, ano_fim: recorte.ano_fim } : {}),
+      },
     ).pipe(
       map((resposta) => mapComparacaoEscolaMunicipioResponseToModel(resposta.body)),
       catchError((erro: unknown) => throwError(() => mapComparacaoEscolaMunicipioErro(erro))),

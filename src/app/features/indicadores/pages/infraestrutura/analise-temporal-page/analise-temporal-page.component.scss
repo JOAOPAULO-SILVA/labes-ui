@@ -12,21 +12,6 @@
   color: var(--sie-color-text);
 }
 
-.filtro-escola {
-  display: grid;
-  grid-template-columns: minmax(260px, 420px) minmax(180px, 240px);
-  gap: 16px;
-  padding: 18px 22px;
-  border: 1px solid #cfdbea;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 16px 34px rgba(10, 42, 104, 0.08);
-}
-
-.filtro-escola app-select {
-  min-width: 0;
-}
-
 .comparacao-conteudo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -114,12 +99,5 @@
   .analise-temporal-page {
     width: min(100% - 20px, var(--sie-content-width));
     padding-top: 18px;
-  }
-}
-
-@media (max-width: 620px) {
-  .filtro-escola {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 16px;
   }
 }

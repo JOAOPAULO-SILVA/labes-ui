@@ -10,9 +10,18 @@ const ICONES = { sim: 'pi-check-circle', nao: 'pi-times-circle', sem_dados: 'pi-
 
 /**
  * `inicial`: nenhuma escola escolhida. `sem_registro`: o ano é uma lacuna da escola.
+ * `sem_dados`: a escola não tem nenhum dado válido no período (REQ07 §2.5): só a mensagem,
+ * sem seletor de ano nem resumo por ano. `erro` usa os mesmos rótulos de `sem_dados`
+ * (REQ07 §2.8: só o aviso do gráfico muda).
  * `pronto`: há composição para o ano (valores podem ser Sim, Não ou Sem dados).
  */
-export type EstadoComposicaoIndice = 'inicial' | 'carregando' | 'erro' | 'sem_registro' | 'pronto';
+export type EstadoComposicaoIndice =
+  | 'inicial'
+  | 'carregando'
+  | 'erro'
+  | 'sem_dados'
+  | 'sem_registro'
+  | 'pronto';
 
 /** Situação de cada indicador da escola no ano selecionado. */
 @Component({
@@ -32,13 +41,23 @@ export class ComposicaoIndiceComponent {
   readonly anos = input<readonly number[]>([]);
   /** Linha de resumo das contagens do ano, exibida abaixo da lista. */
   readonly resumo = input<string | null>(null);
+  /** Linhas do resumo por ano (REQ07 §2.10); vazio esconde o bloco. */
+  readonly resumoAnos = input<readonly string[]>([]);
   readonly anoChange = output<number>();
 
   protected readonly textos = TEXTOS_COMPARACAO;
   protected readonly icones = ICONES;
 
+  /** Sem dados no período, o seletor de ano do painel some (REQ07 §2.5). */
   protected readonly opcoesAno = computed<AppSelectOption<number>[]>(() =>
-    this.anos().map((ano) => ({ label: String(ano), value: ano })),
+    this.estado() === 'sem_dados' || this.estado() === 'erro'
+      ? []
+      : this.anos().map((ano) => ({ label: String(ano), value: ano })),
+  );
+  protected readonly mostrarResumoAnos = computed(
+    () =>
+      this.resumoAnos().length > 0 &&
+      (this.estado() === 'pronto' || this.estado() === 'sem_registro'),
   );
 
   protected readonly mensagem = computed(() => {
@@ -47,7 +66,8 @@ export class ComposicaoIndiceComponent {
       case 'inicial':
         return t.inicial;
       case 'erro':
-        return t.erro;
+      case 'sem_dados':
+        return t.semDados;
       case 'sem_registro':
         return t.semRegistro(this.ano() ?? 0);
       default:
