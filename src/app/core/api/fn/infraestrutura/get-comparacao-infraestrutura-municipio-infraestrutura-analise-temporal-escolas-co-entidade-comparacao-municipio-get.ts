@@ -15,12 +15,30 @@ export interface GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTempor
  * Código INEP da escola, com oito dígitos.
  */
   co_entidade: number;
+
+/**
+ * Rede(s) de ensino das escolas de referência: Federal, Estadual, Municipal ou Privada. A escola selecionada permanece como alvo.
+ */
+  rede_ensino?: (Array<'Federal' | 'Estadual' | 'Municipal' | 'Privada'> | null);
+
+/**
+ * Primeiro ano; ano_fim deve estar pelo menos dois anos à frente.
+ */
+  ano_inicio?: number;
+
+/**
+ * Último ano; o intervalo deve ter pelo menos dois anos de diferença.
+ */
+  ano_fim?: number;
 }
 
 export function getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet(http: HttpClient, rootUrl: string, params: GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Params, context?: HttpContext): Observable<StrictHttpResponse<ComparacaoInfraestruturaResponse>> {
   const rb = new RequestBuilder(rootUrl, getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet.PATH, 'get');
   if (params) {
     rb.path('co_entidade', params.co_entidade, {});
+    rb.query('rede_ensino', params.rede_ensino, {});
+    rb.query('ano_inicio', params.ano_inicio, {});
+    rb.query('ano_fim', params.ano_fim, {});
   }
 
   return http.request(
