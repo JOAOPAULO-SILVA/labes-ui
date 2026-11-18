@@ -15,7 +15,7 @@ export const TEXTOS_COMPARACAO = {
   titulo: 'Infraestrutura • Análise Temporal',
   subtitulo:
     'Compare o desempenho da escola selecionada com a média das demais escolas do mesmo município ao longo do tempo.',
-  tituloGrafico: 'Percentual de recursos de infraestrutura disponíveis — evolução temporal',
+  tituloGrafico: 'Evolução temporal da infraestrutura da escola',
   dicaGrafico:
     'Passe o cursor sobre os pontos da linha do gráfico para visualizar o resumo detalhado daquele ano.',
   /** Celular (REQ07 §2.4): o tooltip abre com um toque, não com o cursor. */

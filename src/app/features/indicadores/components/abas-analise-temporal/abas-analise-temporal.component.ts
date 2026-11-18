@@ -37,21 +37,26 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
       display: block;
     }
     .abas {
-      display: flex;
-      gap: 4px;
-      border-bottom: 1px solid #dce5ef;
-      overflow-x: auto;
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      padding: 6px;
+      border: 1px solid #dce5ef;
+      border-radius: 10px;
+      background: #fff;
     }
     .abas__aba {
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 8px;
-      padding: 10px 16px;
-      border-bottom: 3px solid transparent;
+      padding: 12px 16px;
+      border-bottom: 3px solid #dce5ef;
+      border-radius: 6px 6px 0 0;
       color: var(--sie-color-muted);
       font-size: 0.92rem;
       font-weight: 800;
-      white-space: nowrap;
+      text-align: center;
       text-decoration: none;
     }
     .abas__aba:hover {
@@ -63,17 +68,13 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
     }
     .abas__aba.is-ativa {
       border-bottom-color: var(--sie-color-primary);
+      background: #eef4ff;
       color: var(--sie-color-primary);
     }
-    /* Celular: as duas abas dividem a largura e o rótulo quebra em vez de rolar. */
     @media (max-width: 480px) {
       .abas__aba {
-        flex: 1 1 0;
-        justify-content: center;
-        padding: 10px 8px;
-        font-size: 0.85rem;
-        white-space: normal;
-        text-align: center;
+        padding: 10px 6px;
+        font-size: 0.82rem;
       }
     }
   `,

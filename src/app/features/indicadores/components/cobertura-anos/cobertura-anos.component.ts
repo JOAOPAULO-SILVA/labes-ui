@@ -15,7 +15,8 @@ import { CartaoAnoMunicipioModel, TEXTOS_MUNICIPIO } from '../../mappers/visao-m
 })
 export class CoberturaAnosComponent {
   readonly cartoes = input<readonly CartaoAnoMunicipioModel[]>([]);
-  readonly comoInterpretar = input(false);
+  /** Texto do aviso "Como interpretar"; `null` esconde o aviso. */
+  readonly comoInterpretar = input<string | null>(null);
   readonly carregando = input(false);
 
   protected readonly textos = TEXTOS_MUNICIPIO;

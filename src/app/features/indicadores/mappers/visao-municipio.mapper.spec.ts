@@ -94,7 +94,7 @@ describe('visão Município (FE16)', () => {
         descricao: '10 escolas sem dados',
       }),
       expect.objectContaining({
-        titulo: 'Cobertura de rede',
+        titulo: 'Cobertura da rede',
         valor: '75,56%',
         descricao: 'Média dos índices escolares',
       }),

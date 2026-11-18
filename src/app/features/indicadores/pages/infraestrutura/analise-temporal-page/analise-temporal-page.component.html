@@ -1,6 +1,6 @@
 <div class="analise-temporal-page">
-  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
   <app-abas-analise-temporal />
+  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
   <app-filtros-analise
     [campos]="camposEscola"
@@ -12,63 +12,72 @@
   />
 
   <ng-template #camposEscola>
-    <app-select
-      [id]="'escola-select'"
-      label="Escola"
-      placeholder="Selecione uma escola"
-      searchPlaceholder="Buscar pelo nome, município ou INEP"
-      emptyMessage="Nenhuma escola encontrada"
-      [options]="opcoesEscola()"
-      [searchable]="true"
-      [showClear]="true"
-      [loading]="catalogo() === 'carregando'"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().escola"
-      (ngModelChange)="onEscolaChange($event)"
-    />
-    <app-select
-      [id]="'dependencia-escola-select'"
-      label="Dependência administrativa da escola"
-      placeholder="Todas"
-      [options]="opcoesDependenciaEscola()"
-      [showClear]="true"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().dependenciaEscola"
-      (ngModelChange)="alterar({ dependenciaEscola: $event })"
-    />
-    <app-select
-      [id]="'municipio-select'"
-      label="Município"
-      placeholder="Todos os municípios"
-      searchPlaceholder="Buscar município"
-      emptyMessage="Nenhum município encontrado"
-      [options]="opcoesMunicipio()"
-      [searchable]="true"
-      [showClear]="true"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().municipio"
-      (ngModelChange)="alterar({ municipio: $event })"
-    />
-    <app-select
-      [id]="'rede-municipio-select'"
-      label="Dependência administrativa do município"
-      placeholder="Todas"
-      [options]="opcoesRede"
-      [showClear]="true"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().redeMunicipio"
-      (ngModelChange)="alterar({ redeMunicipio: $event })"
-    />
-    <app-range-slider
-      label="Intervalo de anos"
-      hint="Selecionar no mínimo 2 anos"
-      [min]="limitesAnos()[0]"
-      [max]="limitesAnos()[1]"
-      [minimoInclusivo]="2"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().anos ?? limitesAnos()"
-      (ngModelChange)="onAnosChange($event)"
-    />
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Filtro da escola</span>
+      <app-select
+        [id]="'escola-select'"
+        label="Escola"
+        placeholder="Selecione uma escola"
+        searchPlaceholder="Buscar pelo nome, município ou INEP"
+        emptyMessage="Nenhuma escola encontrada"
+        [options]="opcoesEscola()"
+        [searchable]="true"
+        [showClear]="true"
+        [loading]="catalogo() === 'carregando'"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().escola"
+        (ngModelChange)="onEscolaChange($event)"
+      />
+      <app-select
+        [id]="'dependencia-escola-select'"
+        label="Dependência administrativa da escola"
+        placeholder="Todas"
+        [options]="opcoesDependenciaEscola()"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().dependenciaEscola"
+        (ngModelChange)="alterar({ dependenciaEscola: $event })"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Filtro do município</span>
+      <app-select
+        [id]="'municipio-select'"
+        label="Município"
+        placeholder="Todos os municípios"
+        searchPlaceholder="Buscar município"
+        emptyMessage="Nenhum município encontrado"
+        [options]="opcoesMunicipio()"
+        [searchable]="true"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().municipio"
+        (ngModelChange)="alterar({ municipio: $event })"
+      />
+      <app-select
+        [id]="'rede-municipio-select'"
+        label="Dependência administrativa do município"
+        placeholder="Todas"
+        [options]="opcoesRede"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().redeMunicipio"
+        (ngModelChange)="alterar({ redeMunicipio: $event })"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Controle de tempo</span>
+      <app-range-slider
+        label="Intervalo de anos"
+        hint="Selecionar no mínimo 2 anos"
+        [min]="limitesAnos()[0]"
+        [max]="limitesAnos()[1]"
+        [minimoInclusivo]="2"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().anos ?? limitesAnos()"
+        (ngModelChange)="onAnosChange($event)"
+      />
+    </div>
   </ng-template>
 
   <div class="comparacao-conteudo" aria-live="polite">

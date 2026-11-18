@@ -101,3 +101,26 @@
     padding-top: 18px;
   }
 }
+
+/* Grupos de filtros (Figma REQ07): rótulo em caixa alta e divisória entre colunas. */
+.filtro-grupo {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.filtro-grupo__titulo {
+  color: var(--sie-color-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 900px) {
+  .filtro-grupo + .filtro-grupo {
+    padding-left: 16px;
+    border-left: 1px solid #dce5ef;
+  }
+}

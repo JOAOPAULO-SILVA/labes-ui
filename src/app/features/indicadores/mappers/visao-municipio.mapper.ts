@@ -15,7 +15,7 @@ import {
 export const TEXTOS_MUNICIPIO = {
   titulo: TEXTOS_COMPARACAO.titulo,
   subtitulo: 'Acompanhe a evolução da cobertura de infraestrutura da rede municipal.',
-  tituloGrafico: 'Cobertura média de infraestrutura da rede municipal — evolução temporal',
+  tituloGrafico: 'Evolução da cobertura da rede municipal',
   serie: 'Cobertura média da rede municipal',
   eixoY: 'Cobertura da rede',
   tooltip: { ano: 'Ano', cobertura: 'Cobertura do município selecionado' },
@@ -28,7 +28,7 @@ export const TEXTOS_MUNICIPIO = {
   resumo: {
     elegiveis: 'Escolas elegíveis',
     comInformacao: 'Escolas com informação',
-    cobertura: 'Cobertura de rede',
+    cobertura: 'Cobertura da rede',
     indicadores: 'Indicadores selecionados',
     rede: (municipio: string) => `Rede de ${municipio}`,
     semDadosEscolas: (n: number) => `${n} ${n === 1 ? 'escola' : 'escolas'} sem dados`,
@@ -51,6 +51,8 @@ export const TEXTOS_MUNICIPIO = {
     titulo: 'Como interpretar',
     texto:
       'Não há escolas elegíveis no período selecionado. Denominador zero não representa cobertura de 0%, mas somente que não existe nenhuma escola com base no filtro aplicado para ser avaliada.',
+    textoSemDados:
+      'Sem dados não equivale a zero. Não há informações suficientes para calcular a cobertura de infraestrutura neste período.',
   },
   filtros: {
     municipio: 'Município',

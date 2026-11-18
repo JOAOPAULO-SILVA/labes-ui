@@ -243,7 +243,11 @@ export class VisaoMunicipioPageComponent implements OnInit {
   });
   protected readonly comoInterpretar = computed(() => {
     const e = this.estado();
-    return e.tipo === 'sucesso' && e.pontos.some((p) => p.situacao === 'denominador_zero');
+    const t = this.textos.comoInterpretar;
+    if (e.tipo === 'inicial') return t.textoSemDados;
+    return e.tipo === 'sucesso' && e.pontos.some((p) => p.situacao === 'denominador_zero')
+      ? t.texto
+      : null;
   });
 
   /** Município e recorte da consulta; só muda quando algum valor de fato muda. */

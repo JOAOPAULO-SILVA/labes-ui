@@ -1,6 +1,6 @@
 <div class="analise-temporal-page">
-  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
   <app-abas-analise-temporal />
+  <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
   <app-filtros-analise
     [campos]="camposMunicipio"
@@ -14,50 +14,59 @@
   />
 
   <ng-template #camposMunicipio>
-    <app-select
-      [id]="'municipio-alvo-select'"
-      [label]="textos.filtros.municipio"
-      [placeholder]="textos.filtros.municipioPlaceholder"
-      searchPlaceholder="Buscar município"
-      emptyMessage="Nenhum município encontrado"
-      [options]="opcoesMunicipio()"
-      [searchable]="true"
-      [showClear]="true"
-      [loading]="catalogo() === 'carregando'"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().municipio"
-      (ngModelChange)="alterar({ municipio: $event })"
-    />
-    <app-select
-      [id]="'rede-municipio-alvo-select'"
-      [label]="textos.filtros.rede"
-      placeholder="Todas"
-      [options]="opcoesRede"
-      [showClear]="true"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().rede"
-      (ngModelChange)="alterar({ rede: $event })"
-    />
-    <app-range-slider
-      [label]="textos.filtros.anos"
-      [hint]="textos.filtros.anosDica"
-      [min]="limitesAnos()[0]"
-      [max]="limitesAnos()[1]"
-      [minimoInclusivo]="2"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().anos ?? limitesAnos()"
-      (ngModelChange)="onAnosChange($event)"
-    />
-    <app-multi-select
-      [label]="textos.filtros.indicadores"
-      [options]="opcoesIndicadores"
-      [resumo]="resumoIndicadores()"
-      [hint]="textos.filtros.indicadoresDica"
-      [error]="erroIndicadores()"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="rascunho().indicadores"
-      (ngModelChange)="alterar({ indicadores: $event ?? [] })"
-    />
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Filtro do município</span>
+      <app-select
+        [id]="'municipio-alvo-select'"
+        [label]="textos.filtros.municipio"
+        [placeholder]="textos.filtros.municipioPlaceholder"
+        searchPlaceholder="Buscar município"
+        emptyMessage="Nenhum município encontrado"
+        [options]="opcoesMunicipio()"
+        [searchable]="true"
+        [showClear]="true"
+        [loading]="catalogo() === 'carregando'"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().municipio"
+        (ngModelChange)="alterar({ municipio: $event })"
+      />
+      <app-select
+        [id]="'rede-municipio-alvo-select'"
+        [label]="textos.filtros.rede"
+        placeholder="Todas"
+        [options]="opcoesRede"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().rede"
+        (ngModelChange)="alterar({ rede: $event })"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Controle de tempo</span>
+      <app-range-slider
+        [label]="textos.filtros.anos"
+        [hint]="textos.filtros.anosDica"
+        [min]="limitesAnos()[0]"
+        [max]="limitesAnos()[1]"
+        [minimoInclusivo]="2"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().anos ?? limitesAnos()"
+        (ngModelChange)="onAnosChange($event)"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Seletor de indicadores</span>
+      <app-multi-select
+        [label]="textos.filtros.indicadores"
+        [options]="opcoesIndicadores"
+        [resumo]="resumoIndicadores()"
+        [hint]="textos.filtros.indicadoresDica"
+        [error]="erroIndicadores()"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().indicadores"
+        (ngModelChange)="alterar({ indicadores: $event ?? [] })"
+      />
+    </div>
   </ng-template>
 
   <ng-template #acoesMunicipio>

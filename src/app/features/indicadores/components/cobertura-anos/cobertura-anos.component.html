@@ -28,13 +28,15 @@
     }
   </ul>
 
-  @if (comoInterpretar() && !carregando()) {
-    <aside class="como-interpretar">
-      <i class="pi pi-info-circle" aria-hidden="true"></i>
-      <div>
-        <h3>{{ textos.comoInterpretar.titulo }}</h3>
-        <p>{{ textos.comoInterpretar.texto }}</p>
-      </div>
-    </aside>
+  @if (comoInterpretar(); as texto) {
+    @if (!carregando()) {
+      <aside class="como-interpretar">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <div>
+          <h3>{{ textos.comoInterpretar.titulo }}</h3>
+          <p>{{ texto }}</p>
+        </div>
+      </aside>
+    }
   }
 </section>
