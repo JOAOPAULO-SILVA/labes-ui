@@ -1,43 +1,89 @@
 <div class="analise-temporal-page">
+  <app-abas-analise-temporal />
   <app-pagina-cabecalho [titulo]="textos.titulo" [subtitulo]="textos.subtitulo" />
 
-  <section class="filtro-escola" aria-label="Seleção de escola">
-    <app-select
-      class="filtro-escola__escola"
-      [id]="'escola-select'"
-      label="Escola"
-      placeholder="Selecione uma escola"
-      searchPlaceholder="Buscar pelo nome, município ou INEP"
-      emptyMessage="Nenhuma escola encontrada"
-      [options]="opcoesEscola()"
-      [searchable]="true"
-      [showClear]="true"
-      [loading]="catalogo() === 'carregando'"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="escolaSelecionada()?.co_entidade ?? null"
-      (ngModelChange)="onEscolaChange($event)"
-    />
-    <app-select
-      class="filtro-escola__municipio"
-      [id]="'municipio-select'"
-      label="Município"
-      placeholder="Todos os municípios"
-      searchPlaceholder="Buscar município"
-      emptyMessage="Nenhum município encontrado"
-      [options]="opcoesMunicipio()"
-      [searchable]="true"
-      [showClear]="true"
-      [loading]="catalogo() === 'carregando'"
-      [disabled]="catalogo() !== 'pronto'"
-      [ngModel]="municipioSelecionado()"
-      (ngModelChange)="onMunicipioChange($event)"
-    />
-  </section>
+  <app-filtros-analise
+    [campos]="camposEscola"
+    [compacto]="telaCompacta()"
+    [resumo]="resumoFiltros()"
+    (abrir)="reiniciarRascunho()"
+    (aplicar)="aplicarRascunho()"
+    (descartar)="reiniciarRascunho()"
+  />
+
+  <ng-template #camposEscola>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Filtro da escola</span>
+      <app-select
+        [id]="'escola-select'"
+        label="Escola"
+        placeholder="Selecione uma escola"
+        searchPlaceholder="Buscar pelo nome, município ou INEP"
+        emptyMessage="Nenhuma escola encontrada"
+        [options]="opcoesEscola()"
+        [searchable]="true"
+        [showClear]="true"
+        [loading]="catalogo() === 'carregando'"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().escola"
+        (ngModelChange)="onEscolaChange($event)"
+      />
+      <app-select
+        [id]="'dependencia-escola-select'"
+        label="Dependência administrativa da escola"
+        placeholder="Todas"
+        [options]="opcoesDependenciaEscola()"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().dependenciaEscola"
+        (ngModelChange)="alterar({ dependenciaEscola: $event })"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Filtro do município</span>
+      <app-select
+        [id]="'municipio-select'"
+        label="Município"
+        placeholder="Todos os municípios"
+        searchPlaceholder="Buscar município"
+        emptyMessage="Nenhum município encontrado"
+        [options]="opcoesMunicipio()"
+        [searchable]="true"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().municipio"
+        (ngModelChange)="alterar({ municipio: $event })"
+      />
+      <app-select
+        [id]="'rede-municipio-select'"
+        label="Dependência administrativa do município"
+        placeholder="Todas"
+        [options]="opcoesRede"
+        [showClear]="true"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().redeMunicipio"
+        (ngModelChange)="alterar({ redeMunicipio: $event })"
+      />
+    </div>
+    <div class="filtro-grupo">
+      <span class="filtro-grupo__titulo">Controle de tempo</span>
+      <app-range-slider
+        label="Intervalo de anos"
+        hint="Selecionar no mínimo 2 anos"
+        [min]="limitesAnos()[0]"
+        [max]="limitesAnos()[1]"
+        [minimoInclusivo]="2"
+        [disabled]="catalogo() !== 'pronto'"
+        [ngModel]="rascunho().anos ?? limitesAnos()"
+        (ngModelChange)="onAnosChange($event)"
+      />
+    </div>
+  </ng-template>
 
   <div class="comparacao-conteudo" aria-live="polite">
     <app-comparacao-resumo [serie]="serie()" [carregando]="carregando()" />
 
-    <p class="dica-grafico">{{ textos.dicaGrafico }}</p>
+    <p class="dica-grafico">{{ dicaGrafico() }}</p>
 
     <app-comparacao-grafico
       [serie]="serie()"
@@ -55,6 +101,7 @@
         [ano]="composicao().ano"
         [anos]="composicao().anos"
         [resumo]="composicao().resumo"
+        [resumoAnos]="composicao().resumoAnos"
         (anoChange)="onAnoComposicaoChange($event)"
       />
 
@@ -70,7 +117,7 @@
       <section class="regras" aria-labelledby="regras-titulo">
         <h2 id="regras-titulo">Regras metodológicas</h2>
         <ol>
-          @for (regra of regras(); track regra) {
+          @for (regra of textos.regras; track regra) {
             <li>{{ regra }}</li>
           }
         </ol>

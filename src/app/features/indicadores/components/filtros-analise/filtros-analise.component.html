@@ -1,0 +1,45 @@
+@if (compacto()) {
+  <section class="filtros filtros--compacto" aria-labelledby="filtros-titulo">
+    <div class="filtros__resumo-bloco">
+      <h2 id="filtros-titulo" class="filtros__titulo">Filtros da análise</h2>
+      <p class="filtros__resumo">{{ resumo() }}</p>
+    </div>
+    <button type="button" class="filtros__ajustar" (click)="abrirGaveta()">
+      <i class="pi pi-sliders-h" aria-hidden="true"></i>
+      Ajustar filtros
+    </button>
+  </section>
+
+  <app-dialog
+    title="Filtros da análise"
+    size="sm"
+    [visible]="gavetaAberta()"
+    [dismissableMask]="true"
+    (visibleChange)="onVisibilidade($event)"
+  >
+    <div class="filtros__campos filtros__campos--gaveta">
+      <ng-container *ngTemplateOutlet="campos()" />
+    </div>
+    <div class="filtros__gaveta-acoes">
+      <button
+        type="button"
+        class="filtros__aplicar"
+        [disabled]="aplicarDesabilitado()"
+        (click)="confirmar()"
+      >
+        Aplicar
+      </button>
+    </div>
+  </app-dialog>
+} @else {
+  <section class="filtros" aria-label="Filtros da análise">
+    <div class="filtros__campos">
+      <ng-container *ngTemplateOutlet="campos()" />
+    </div>
+    @if (acoes(); as tpl) {
+      <div class="filtros__acoes">
+        <ng-container *ngTemplateOutlet="tpl" />
+      </div>
+    }
+  </section>
+}

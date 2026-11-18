@@ -8,7 +8,7 @@
 export interface MetodologiaComparacaoInfraestrutura {
 
   /**
-   * Período fixo do MVP.
+   * Anos efetivamente disponíveis no banco dentro do período solicitado.
    */
   anos: Array<number>;
 

@@ -26,6 +26,8 @@ export interface EscolaGeoEntryModel {
   latitude: number;
   longitude: number;
   no_municipio: string | null;
+  /** Código IBGE do município (geojson); `null` quando ausente. */
+  co_municipio: number | null;
   no_tp_dependencia?: string | null;
   no_tp_localizacao?: string | null;
 }
@@ -101,8 +103,28 @@ export interface EscolaBuscaModel {
   co_entidade: number;
   nome: string;
   municipio: string | null;
+  /** Código IBGE do município; usado na visão Município (FE16). */
+  codigoMunicipio: number | null;
   dependencia: string | null;
   localizacao: string | null;
+}
+
+/** Dependência administrativa aceita pelas rotas BE13/BE15 (`rede_ensino`). */
+export type RedeEnsinoModel = 'Federal' | 'Estadual' | 'Municipal' | 'Privada';
+
+export const REDES_ENSINO: readonly RedeEnsinoModel[] = [
+  'Federal',
+  'Estadual',
+  'Municipal',
+  'Privada',
+];
+
+/** Recorte de uma consulta temporal (REQ07): rede opcional e intervalo de anos. */
+export interface RecorteTemporalModel {
+  /** Vazio = todas as dependências administrativas. */
+  rede_ensino: RedeEnsinoModel[];
+  ano_inicio: number;
+  ano_fim: number;
 }
 
 export type SituacaoComparacaoMunicipioModel =
@@ -158,6 +180,8 @@ export interface MetodologiaComparacaoMunicipioModel {
 }
 
 export interface ComparacaoEscolaMunicipioModel {
+  /** Recorte efetivamente aplicado pela API (BE13). */
+  filtros: RecorteTemporalModel;
   escola: { co_entidade: number; no_entidade: string };
   municipio: { co_municipio: number; no_municipio: string };
   metodologia: MetodologiaComparacaoMunicipioModel;
@@ -198,11 +222,51 @@ export type CodigoErroComparacaoMunicipioModel =
   | 'validation_error'
   | 'internal_error'
   | 'warehouse_unavailable'
+  | 'source_data_inconsistent'
   | 'network_error';
 
 export interface ErroComparacaoMunicipioModel {
   codigo: CodigoErroComparacaoMunicipioModel;
   mensagem: string;
+}
+
+/** Recorte da visão Município (BE15): rede, anos e os indicadores escolhidos. */
+export interface RecorteMunicipioModel extends RecorteTemporalModel {
+  indicadores: string[];
+}
+
+/**
+ * Situação de um ano na visão Município (BE15). `denominador_zero`: nenhuma escola elegível
+ * no recorte, o que não é cobertura de 0%. `sem_dados`: há escolas, mas nenhuma com
+ * informação válida nos indicadores escolhidos.
+ */
+export type SituacaoAnoMunicipioModel = 'com_dados' | 'sem_dados' | 'denominador_zero';
+
+export interface IndicadorAnoMunicipioModel {
+  quantidade_presentes: number;
+  quantidade_validos: number;
+  quantidade_sem_dados: number;
+  percentual_presentes: number | null;
+  cobertura_percentual: number | null;
+}
+
+/** Ano da série municipal. `null` na cobertura é ausência de cálculo, nunca zero. */
+export interface PontoMunicipioModel {
+  ano: number;
+  situacao: SituacaoAnoMunicipioModel;
+  cobertura_media_percentual: number | null;
+  quantidade_escolas: number;
+  quantidade_escolas_com_informacao: number;
+  quantidade_escolas_sem_dados: number;
+  indicadores: Record<string, IndicadorAnoMunicipioModel>;
+}
+
+export interface VisaoTemporalMunicipioModel {
+  /** Recorte efetivamente aplicado pela API. */
+  filtros: RecorteMunicipioModel;
+  municipio: { co_municipio: number; no_municipio: string };
+  metodologia: { versao: string; homologada: boolean; formula: string; avisos: string[] };
+  serie: PontoMunicipioModel[];
 }
 
 export interface GeoJsonGeometryModel {

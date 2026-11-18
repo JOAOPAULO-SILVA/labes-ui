@@ -12,21 +12,6 @@
   color: var(--sie-color-text);
 }
 
-.filtro-escola {
-  display: grid;
-  grid-template-columns: minmax(260px, 420px) minmax(180px, 240px);
-  gap: 16px;
-  padding: 18px 22px;
-  border: 1px solid #cfdbea;
-  border-radius: 8px;
-  background: #fff;
-  box-shadow: 0 16px 34px rgba(10, 42, 104, 0.08);
-}
-
-.filtro-escola app-select {
-  min-width: 0;
-}
-
 .comparacao-conteudo {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -117,9 +102,25 @@
   }
 }
 
-@media (max-width: 620px) {
-  .filtro-escola {
-    grid-template-columns: minmax(0, 1fr);
-    padding: 16px;
+/* Grupos de filtros (Figma REQ07): rótulo em caixa alta e divisória entre colunas. */
+.filtro-grupo {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  min-width: 0;
+}
+
+.filtro-grupo__titulo {
+  color: var(--sie-color-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+@media (min-width: 900px) {
+  .filtro-grupo + .filtro-grupo {
+    padding-left: 16px;
+    border-left: 1px solid #dce5ef;
   }
 }

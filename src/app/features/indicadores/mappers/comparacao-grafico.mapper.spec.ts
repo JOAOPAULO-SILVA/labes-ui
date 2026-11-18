@@ -56,13 +56,13 @@ describe('montarFiguraComparacao', () => {
   });
 });
 
-describe('tooltip (REQ-04 SP3-11, item 3)', () => {
+describe('tooltip (REQ07 §2.4)', () => {
   const ponto = serie.pontos[0];
 
   it('A) formato padrão: ano, escola com indicadores válidos, demais escolas com pares, diferença', () => {
     expect(texto(montarLinhasTooltip(ponto))).toBe(
       [
-        '2022',
+        'Ano: 2022',
         'Escola selecionada: 76,47% (17 indicadores válidos)',
         'Demais escolas do município: 64,71% (85 pares)',
         'Diferença: 11,76 p.p.',
@@ -79,7 +79,7 @@ describe('tooltip (REQ-04 SP3-11, item 3)', () => {
     };
     expect(texto(montarLinhasTooltip(excecao1))).toBe(
       [
-        '2022',
+        'Ano: 2022',
         'Escola selecionada: Sem dados',
         'Demais escolas do município: 64,71% (85 pares)',
         'Diferença: Sem dados',
@@ -91,7 +91,7 @@ describe('tooltip (REQ-04 SP3-11, item 3)', () => {
     const excecao2 = serie.pontos[3];
     expect(texto(montarLinhasTooltip(excecao2))).toBe(
       [
-        '2025',
+        'Ano: 2025',
         'Escola selecionada: 70,59% (17 indicadores válidos)',
         'Demais escolas do município: Sem dados',
         'Diferença: Sem dados',
@@ -101,30 +101,25 @@ describe('tooltip (REQ-04 SP3-11, item 3)', () => {
 });
 
 describe('montarResumoComparacao', () => {
-  it('usa o último ano disponível da escola', () => {
+  it('usa o último ano do intervalo, mesmo quando é uma lacuna (REQ07 §2.3)', () => {
     expect(selecionarPontoResumo(serie)?.ano).toBe(2025);
-    const semUltimoAno = prepararSerieGraficoComparacao(
+    const ultimoAnoSemDados = prepararSerieGraficoComparacao(
       modelo.serie.map((p) => (p.ano === 2025 ? { ...p, indice_escola_percentual: null } : p)),
     );
-    expect(selecionarPontoResumo(semUltimoAno)?.ano).toBe(2023);
+    const ponto = selecionarPontoResumo(ultimoAnoSemDados);
+    expect(ponto?.ano).toBe(2025);
+    expect(montarResumoComparacao(ultimoAnoSemDados)[0].valor).toBe('Sem dados');
   });
 
-  it('monta os quatro cartões do protótipo', () => {
+  it('monta os quatro cartões da REQ07 §2.3', () => {
     const resumo = montarResumoComparacao(serie);
     expect(resumo.map((i) => [i.titulo, i.valor, i.descricao])).toEqual([
-      ['Escola selecionada', '70,59%', '12 de 17 recursos disponíveis'],
+      ['Escola selecionada', '70,59%', '17 de 17 indicadores válidos'],
       ['Demais escolas do município', 'Sem dados', '0 escolas na referência'],
       ['Diferença', 'Sem dados', undefined],
-      ['Indicadores válidos', '17', 'varia entre os anos'],
+      ['Indicadores válidos', '17', undefined],
     ]);
     expect(resumo[2].selo).toBe(true);
-  });
-
-  it('diz Mesma quantidade de indicadores válidos em todos os anos só quando a quantidade não muda', () => {
-    const constante = prepararSerieGraficoComparacao(
-      modelo.serie.map((p) => ({ ...p, quantidade_indicadores_validos: 17 })),
-    );
-    expect(montarResumoComparacao(constante)[3].descricao).toBe('mesmo conjunto em todos os anos');
   });
 
   it('mostra a diferença negativa com o sinal', () => {

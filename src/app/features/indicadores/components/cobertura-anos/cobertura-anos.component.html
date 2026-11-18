@@ -1,0 +1,42 @@
+<section
+  class="cobertura-anos"
+  aria-labelledby="cobertura-anos-titulo"
+  [attr.aria-busy]="carregando()"
+>
+  <h2 id="cobertura-anos-titulo">{{ textos.anos.titulo }}</h2>
+
+  <ul class="cobertura-anos__lista">
+    @for (cartao of cartoes(); track cartao.ano) {
+      <li class="cartao-ano" [class]="'cartao-ano--' + cartao.variante">
+        <span class="cartao-ano__ano">{{ cartao.ano }}</span>
+        @if (carregando()) {
+          <span class="skeleton-valor"></span>
+        } @else {
+          <strong class="cartao-ano__valor">{{ cartao.valor }}</strong>
+          @if (cartao.rotulo) {
+            <span class="cartao-ano__rotulo">{{ cartao.rotulo }}</span>
+          }
+          @if (cartao.linhas.length) {
+            <ul class="cartao-ano__linhas">
+              @for (linha of cartao.linhas; track linha) {
+                <li>{{ linha }}</li>
+              }
+            </ul>
+          }
+        }
+      </li>
+    }
+  </ul>
+
+  @if (comoInterpretar(); as texto) {
+    @if (!carregando()) {
+      <aside class="como-interpretar">
+        <i class="pi pi-info-circle" aria-hidden="true"></i>
+        <div>
+          <h3>{{ textos.comoInterpretar.titulo }}</h3>
+          <p>{{ texto }}</p>
+        </div>
+      </aside>
+    }
+  }
+</section>
