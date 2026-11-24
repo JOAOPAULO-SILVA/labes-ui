@@ -17,6 +17,7 @@ const ESCOLA_A: EscolaBuscaModel = {
   co_entidade: 15012345,
   nome: 'EMEF Exemplo',
   municipio: 'Belém',
+  codigoMunicipio: 1501402,
   dependencia: null,
   localizacao: null,
 };
@@ -25,6 +26,8 @@ const ESCOLA_B: EscolaBuscaModel = {
   co_entidade: 15054321,
   nome: 'EMEF Outra',
   municipio: 'Ananindeua',
+  codigoMunicipio: 1500800,
+  dependencia: 'Estadual',
 };
 const MODELO = mapComparacaoEscolaMunicipioResponseToModel(
   comparacaoMock as ComparacaoInfraestruturaResponse,
@@ -64,6 +67,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
           provide: InfraestruturaFacade,
           useValue: {
             listarEscolasParaBusca: () => of([ESCOLA_A, ESCOLA_B]),
+            listarFiltros: () => of({ metricas: [], anos: [2022, 2023, 2024, 2025] }),
             obterComparacaoEscolaMunicipio: obter,
           },
         },
@@ -74,7 +78,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
   });
 
   it('não chama a API antes da seleção e mostra o layout completo sem dados', () => {
-    // A facade de teste só expõe o catálogo local e a comparação: qualquer outra chamada falharia.
+    // A facade de teste só expõe catálogo, anos (/filtros) e comparação: outra chamada falharia.
     expect(obter).not.toHaveBeenCalled();
     expect(valoresCartoes()).toEqual(['Sem dados', 'Sem dados', 'Sem dados', 'Sem dados']);
     expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
@@ -97,10 +101,12 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     });
 
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+
+    TestBed.tick();
     expect(
       (
-        fixture.componentInstance as unknown as { municipioSelecionado(): string | null }
-      ).municipioSelecionado(),
+        fixture.componentInstance as unknown as { filtros(): { municipio: string | null } }
+      ).filtros().municipio,
     ).toBe('Belém');
   });
 
@@ -108,27 +114,39 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     const instancia = fixture.componentInstance as unknown as {
       opcoesEscola(): { value: number }[];
       opcoesMunicipio(): { label: string }[];
-      onMunicipioChange(m: string | null): void;
+      alterar(f: { municipio: string | null }): void;
       escolaSelecionada(): EscolaBuscaModel | null;
     };
     expect(instancia.opcoesMunicipio().map((m) => m.label)).toEqual(['Ananindeua', 'Belém']);
 
-    instancia.onMunicipioChange('Ananindeua');
+    instancia.alterar({ municipio: 'Ananindeua' });
+
+    TestBed.tick();
     expect(instancia.opcoesEscola().map((e) => e.value)).toEqual([ESCOLA_B.co_entidade]);
 
     pagina().onEscolaChange(ESCOLA_B.co_entidade);
-    instancia.onMunicipioChange('Belém');
+
+    TestBed.tick();
+    instancia.alterar({ municipio: 'Belém' });
+    TestBed.tick();
     expect(instancia.escolaSelecionada()).toBeNull();
     expect(instancia.opcoesEscola().map((e) => e.value)).toEqual([ESCOLA_A.co_entidade]);
 
-    instancia.onMunicipioChange(null);
+    instancia.alterar({ municipio: null });
+
+    TestBed.tick();
     expect(instancia.opcoesEscola()).toHaveLength(2);
   });
 
   it('mostra carregamento e depois o resultado', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     fixture.detectChanges();
-    expect(obter).toHaveBeenCalledWith(15012345);
+    expect(obter).toHaveBeenCalledWith(15012345, {
+      rede_ensino: [],
+      ano_inicio: 2022,
+      ano_fim: 2025,
+    });
     expect(el().querySelector('.comparacao-resumo[aria-busy="true"]')).not.toBeNull();
 
     respostas.get(15012345)!.next(MODELO);
@@ -140,7 +158,9 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('a nova escola substitui a anterior, mesmo que a anterior responda depois', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     pagina().onEscolaChange(ESCOLA_B.co_entidade);
+    TestBed.tick();
     fixture.detectChanges();
 
     expect(respostas.get(15012345)!.observed).toBe(false);
@@ -153,6 +173,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('mostra o erro dentro da área do gráfico, mantendo o layout', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.error({
       codigo: 'warehouse_unavailable',
       mensagem: 'Erro ao carregar os dados. A fonte de dados está indisponível.',
@@ -169,6 +190,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('não oferece tentar de novo quando a escola não existe', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.error({
       codigo: 'not_found',
       mensagem: 'Escola não encontrada na fonte consultada.',
@@ -181,6 +203,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('mostra dados insuficientes quando a escola não tem nenhum ano calculável', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next({
       ...MODELO,
       serie: MODELO.serie.map((p) => ({
@@ -192,9 +215,19 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     fixture.detectChanges();
 
     expect(texto()).toContain(
-      'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal desta escola.',
+      'Não existem dados de infraestrutura suficientes para desenhar a evolução temporal deste item no período selecionado.',
     );
     expect(el().querySelector('plotly-plot')).toBeNull();
+    // REQ07 §2.5/§2.6: composição e painel territorial mostram só a mensagem de sem dados,
+    // sem seletor de ano nem resumo por ano.
+    expect(texto()).toContain(
+      'Não existem dados de infraestrutura suficientes para preencher a composição de índices no período selecionado.',
+    );
+    expect(texto()).toContain(
+      'Não existem dados de infraestrutura suficientes para preencher a composição das demais escolas do município no período selecionado.',
+    );
+    expect(el().querySelector('#composicao-ano-select')).toBeNull();
+    expect(el().querySelector('.composicao__anos')).toBeNull();
   });
 
   const itensComposicao = (classe: string) =>
@@ -202,18 +235,23 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('mostra carregamento e erro também na composição', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     fixture.detectChanges();
     expect(el().querySelector('.composicao')?.getAttribute('aria-busy')).toBe('true');
     expect(itensComposicao('skeleton')).toBe(17);
 
     respostas.get(15012345)!.error({ codigo: 'internal_error', mensagem: 'Erro.' });
     fixture.detectChanges();
-    expect(texto()).toContain('Não foi possível carregar a composição do índice.');
+    // REQ07 §2.8: em erro, os painéis mostram os rótulos de "sem dados"; só o gráfico muda.
+    expect(texto()).toContain(
+      'Não existem dados de infraestrutura suficientes para preencher a composição de índices no período selecionado.',
+    );
     expect(el().querySelectorAll('.composicao__item')).toHaveLength(0);
   });
 
   it('renderiza os 17 indicadores reais do último ano: 1 = Sim, 0 = Não', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next(MODELO);
     fixture.detectChanges();
 
@@ -226,6 +264,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('atualiza a composição ao trocar o ano, com NULL como Sem dados', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next(MODELO);
     composicaoPagina().onAnoComposicaoChange(2023);
     fixture.detectChanges();
@@ -238,6 +277,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('informa ano sem registro da escola em vez de mostrar indicadores', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next(MODELO);
     composicaoPagina().onAnoComposicaoChange(2024);
     fixture.detectChanges();
@@ -248,9 +288,11 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
   it('volta ao último ano ao trocar de escola', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next(MODELO);
     composicaoPagina().onAnoComposicaoChange(2023);
     pagina().onEscolaChange(ESCOLA_B.co_entidade);
+    TestBed.tick();
     respostas.get(15054321)!.next(MODELO);
     fixture.detectChanges();
 
@@ -262,6 +304,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
     const textoTerritorial = () => territorial().textContent ?? '';
     const carregar = (ano?: number) => {
       pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      TestBed.tick();
       respostas.get(15012345)!.next(MODELO);
       if (ano) composicaoPagina().onAnoComposicaoChange(ano);
       fixture.detectChanges();
@@ -313,6 +356,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
 
     it('informa ausência de pares quando não há outras escolas', () => {
       pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      TestBed.tick();
       respostas.get(15012345)!.next({
         ...MODELO,
         serie: MODELO.serie.map((p) => ({
@@ -324,7 +368,7 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       composicaoPagina().onAnoComposicaoChange(2022);
       fixture.detectChanges();
       expect(textoTerritorial()).toContain(
-        'Não há outras escolas do município com registro em 2022 para compor a referência.',
+        'Ausência de pares para calcular a referência municipal',
       );
     });
 
@@ -333,42 +377,99 @@ describe('AnaliseTemporalPageComponent (infraestrutura)', () => {
       expect(textoTerritorial()).toContain('Sem referência territorial em 2024');
 
       pagina().onEscolaChange(ESCOLA_B.co_entidade);
+
+      TestBed.tick();
       fixture.detectChanges();
       expect(territorial().getAttribute('aria-busy')).toBe('true');
 
       respostas.get(15054321)!.error({ codigo: 'internal_error', mensagem: 'Erro.' });
       fixture.detectChanges();
-      expect(textoTerritorial()).toContain('Não foi possível carregar a composição territorial.');
+      expect(textoTerritorial()).toContain(
+        'Não existem dados de infraestrutura suficientes para preencher a composição das demais escolas do município no período selecionado.',
+      );
     });
-  });
-
-  it('exibe os avisos de metodologia.avisos no fim das regras após a resposta (BE09 §15)', () => {
-    pagina().onEscolaChange(ESCOLA_A.co_entidade);
-    respostas.get(15012345)!.next(MODELO);
-    fixture.detectChanges();
-    const regras = [...el().querySelectorAll('.regras li')].map((li) => li.textContent?.trim());
-    expect(regras.slice(-2)).toEqual(MODELO.metodologia.avisos);
-    expect(regras).toHaveLength(5);
   });
 
   it('volta ao estado inicial ao limpar', () => {
     pagina().onEscolaChange(ESCOLA_A.co_entidade);
+    TestBed.tick();
     respostas.get(15012345)!.next(MODELO);
     pagina().onEscolaChange(null);
+    TestBed.tick();
     fixture.detectChanges();
 
     expect(texto()).toContain('Selecione uma escola para visualizar a evolução temporal.');
     expect(valoresCartoes()[0]).toBe('Sem dados');
   });
 
-  it('mostra os avisos de limitação e metodologia só no fim das regras (REQ-04, item 4)', () => {
+  it('mostra as 5 regras metodológicas da aba Escola (REQ07 §3), uma vez só', () => {
     const regras = [...el().querySelectorAll('.regras li')].map((li) => li.textContent?.trim());
-    expect(regras.slice(-2)).toEqual([
+    expect(regras).toEqual([
+      'Sim = 1 | Não = 0 | Sem informação = excluída do cálculo.',
+      'A referência municipal exclui a escola selecionada e considera a mesma rede.',
+      'Todos os indicadores possuem o mesmo peso.',
+      'Esta análise utiliza metodologia de cálculo em caráter provisório e pendente de homologação.',
       'O índice representa disponibilidade de infraestrutura, não qualidade escolar.',
-      'Esta análise utiliza uma metodologia de cálculo em caráter provisório e pendente de homologação.',
     ]);
 
     const ocorrencias = texto().split('não qualidade escolar').length - 1;
     expect(ocorrencias).toBe(1);
+  });
+  describe('filtros da REQ07 (FE12)', () => {
+    const pag = () =>
+      fixture.componentInstance as unknown as {
+        alterar(f: Record<string, unknown>): void;
+        onAnosChange(anos: [number, number]): void;
+        opcoesEscola(): { value: number }[];
+        filtros(): { escola: number | null };
+      };
+
+    it('a dependência da escola restringe a lista e desmarca escola de outra rede', () => {
+      pagina().onEscolaChange(ESCOLA_B.co_entidade);
+      TestBed.tick();
+      pag().alterar({ dependenciaEscola: 'Estadual' });
+      TestBed.tick();
+      expect(
+        pag()
+          .opcoesEscola()
+          .map((e) => e.value),
+      ).toEqual([ESCOLA_B.co_entidade]);
+
+      pag().alterar({ dependenciaEscola: 'Municipal' });
+      TestBed.tick();
+      expect(pag().filtros().escola).toBeNull();
+      expect(pag().opcoesEscola()).toHaveLength(0);
+    });
+
+    it('envia a rede do município e o intervalo de anos à API e consulta de novo ao mudar', () => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      TestBed.tick();
+      pag().alterar({ redeMunicipio: 'Municipal' });
+      TestBed.tick();
+      pag().onAnosChange([2023, 2024]);
+      TestBed.tick();
+
+      expect(obter).toHaveBeenLastCalledWith(15012345, {
+        rede_ensino: ['Municipal'],
+        ano_inicio: 2023,
+        ano_fim: 2024,
+      });
+      expect(obter).toHaveBeenCalledTimes(3);
+    });
+
+    it('mostra o resumo da quantidade de indicadores em cada ano (REQ07 §2.10)', () => {
+      pagina().onEscolaChange(ESCOLA_A.co_entidade);
+      TestBed.tick();
+      respostas.get(15012345)!.next(MODELO);
+      fixture.detectChanges();
+      const bloco = el().querySelector('.composicao__anos') as HTMLElement;
+      expect(bloco.textContent).toContain('Resumo da quantidade de indicadores em cada ano');
+      expect(bloco.querySelectorAll('li').length).toBe(MODELO.serie.length);
+    });
+
+    it('mostra as abas Escola e Município, com a aba Escola ativa', () => {
+      const abas = [...el().querySelectorAll('.abas__aba')].map((a) => a.textContent?.trim());
+      expect(abas).toEqual(['Análise por Escola', 'Análise por Município']);
+    });
   });
 });

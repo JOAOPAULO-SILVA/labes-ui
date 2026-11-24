@@ -10,9 +10,9 @@ import { MunicipioComparacaoInfraestrutura } from '../models/municipio-comparaca
 export interface PontoComparacaoInfraestrutura {
 
   /**
-   * Ano do Censo Escolar.
+   * Ano do Censo Escolar disponível.
    */
-  ano: 2022 | 2023 | 2024 | 2025;
+  ano: number;
 
   /**
    * Cobertura dos indicadores da escola.

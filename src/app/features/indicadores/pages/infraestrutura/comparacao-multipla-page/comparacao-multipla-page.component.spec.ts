@@ -13,6 +13,7 @@ const escola = (co: number, nome: string, municipio: string): EscolaBuscaModel =
   municipio,
   dependencia: null,
   localizacao: null,
+  codigoMunicipio: null,
 });
 const ESCOLAS = [
   escola(15000001, 'EMEF A', 'Belém'),

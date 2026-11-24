@@ -6,7 +6,7 @@
   <header class="composicao__cabecalho">
     <h2 id="composicao-titulo">
       {{ textos.composicao.titulo }}
-      @if (ano() !== null && estado() !== 'inicial') {
+      @if (ano() !== null && (estado() === 'pronto' || estado() === 'sem_registro')) {
         <span class="composicao__ano-titulo">· {{ ano() }}</span>
       }
     </h2>
@@ -48,13 +48,20 @@
       }
     }
     @default {
-      <p
-        class="composicao__mensagem"
-        [class.composicao__mensagem--erro]="estado() === 'erro'"
-        [attr.role]="estado() === 'erro' ? 'alert' : null"
-      >
+      <p class="composicao__mensagem">
         {{ mensagem() }}
       </p>
     }
+  }
+
+  @if (mostrarResumoAnos()) {
+    <div class="composicao__anos" aria-labelledby="composicao-anos-titulo">
+      <h3 id="composicao-anos-titulo">{{ textos.resumoAnos.titulo }}</h3>
+      <ul>
+        @for (linha of resumoAnos(); track linha) {
+          <li>{{ linha }}</li>
+        }
+      </ul>
+    </div>
   }
 </section>

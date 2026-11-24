@@ -22,8 +22,11 @@ import { getPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet } from '..
 import { GetPainelEscolasInfraestruturaInfraestruturaPainelEscolasGet$Params } from '../fn/infraestrutura/get-painel-escolas-infraestrutura-infraestrutura-painel-escolas-get';
 import { getPainelInfraestruturaInfraestruturaPainelGet } from '../fn/infraestrutura/get-painel-infraestrutura-infraestrutura-painel-get';
 import { GetPainelInfraestruturaInfraestruturaPainelGet$Params } from '../fn/infraestrutura/get-painel-infraestrutura-infraestrutura-painel-get';
+import { getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet } from '../fn/infraestrutura/get-visao-temporal-municipio-infraestrutura-infraestrutura-analise-temporal-municipios-co-municipio-get';
+import { GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Params } from '../fn/infraestrutura/get-visao-temporal-municipio-infraestrutura-infraestrutura-analise-temporal-municipios-co-municipio-get';
 import { PainelEscolasResponse } from '../models/painel-escolas-response';
 import { PainelResponse } from '../models/painel-response';
+import { VisaoTemporalMunicipioInfraestruturaResponse } from '../models/visao-temporal-municipio-infraestrutura-response';
 
 @Injectable({ providedIn: 'root' })
 export class InfraestruturaService extends BaseService {
@@ -181,13 +184,56 @@ export class InfraestruturaService extends BaseService {
     return resp.then((r: StrictHttpResponse<AppSchemasInfraestruturaAnaliseTemporalResponse>): AppSchemasInfraestruturaAnaliseTemporalResponse => r.body);
   }
 
+  /** Path part for operation `getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet()` */
+  static readonly GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGetPath = '/infraestrutura/analise-temporal/municipios/{co_municipio}';
+
+  /**
+   * Serie temporal agregada da infraestrutura de um municipio.
+   *
+   * Media simples dos indices escolares por ano (REQ07, metodologia provisoria).
+   *
+   * Intervalo minimo de dois anos inclusivos. Escolas sem resposta 0/1 nos
+   * indicadores selecionados nao entram na media. A resposta distingue ausencia
+   * de escolas e ausencia de informacao, preservando o detalhamento por indicador.
+   * Fonte inconsistente retorna 503/source_data_inconsistent, sem serie enganosa.
+   *
+   * This method provides access to the full `HttpResponse`, allowing access to response headers.
+   * To access only the response body, use `getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Response(params: GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Params, context?: HttpContext): Promise<StrictHttpResponse<VisaoTemporalMunicipioInfraestruturaResponse>> {
+    const obs = getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet(this.http, this.rootUrl, params, context);
+    return firstValueFrom(obs);
+  }
+
+  /**
+   * Serie temporal agregada da infraestrutura de um municipio.
+   *
+   * Media simples dos indices escolares por ano (REQ07, metodologia provisoria).
+   *
+   * Intervalo minimo de dois anos inclusivos. Escolas sem resposta 0/1 nos
+   * indicadores selecionados nao entram na media. A resposta distingue ausencia
+   * de escolas e ausencia de informacao, preservando o detalhamento por indicador.
+   * Fonte inconsistente retorna 503/source_data_inconsistent, sem serie enganosa.
+   *
+   * This method provides access only to the response body.
+   * To access the full response (for headers, for example), `getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Response()` instead.
+   *
+   * This method doesn't expect any request body.
+   */
+  getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet(params: GetVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Params, context?: HttpContext): Promise<VisaoTemporalMunicipioInfraestruturaResponse> {
+    const resp = this.getVisaoTemporalMunicipioInfraestruturaInfraestruturaAnaliseTemporalMunicipiosCoMunicipioGet$Response(params, context);
+    return resp.then((r: StrictHttpResponse<VisaoTemporalMunicipioInfraestruturaResponse>): VisaoTemporalMunicipioInfraestruturaResponse => r.body);
+  }
+
   /** Path part for operation `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet()` */
   static readonly GetComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGetPath = '/infraestrutura/analise-temporal/escolas/{co_entidade}/comparacao-municipio';
 
   /**
    * Compara a infraestrutura da escola com seu município.
    *
-   * Retorna a série fixa 2022–2025 da comparação Escola × Município.
+   * Permite selecionar a(s) rede(s) das escolas de referência e um intervalo temporal com pelo menos dois anos de diferença. A resposta inclui somente os anos existentes na base dentro do intervalo.
    *
    * This method provides access to the full `HttpResponse`, allowing access to response headers.
    * To access only the response body, use `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet()` instead.
@@ -202,7 +248,7 @@ export class InfraestruturaService extends BaseService {
   /**
    * Compara a infraestrutura da escola com seu município.
    *
-   * Retorna a série fixa 2022–2025 da comparação Escola × Município.
+   * Permite selecionar a(s) rede(s) das escolas de referência e um intervalo temporal com pelo menos dois anos de diferença. A resposta inclui somente os anos existentes na base dentro do intervalo.
    *
    * This method provides access only to the response body.
    * To access the full response (for headers, for example), `getComparacaoInfraestruturaMunicipioInfraestruturaAnaliseTemporalEscolasCoEntidadeComparacaoMunicipioGet$Response()` instead.

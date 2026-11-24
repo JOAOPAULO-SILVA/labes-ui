@@ -8,18 +8,22 @@ import {
   signal,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Observable, Subject, catchError, map, of, startWith, switchMap } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { Observable, catchError, distinctUntilChanged, map, of, startWith, switchMap } from 'rxjs';
 
 import { AppSelectComponent } from '../../../../../shared/ui/select/app-select.component';
 import { AppSelectOption } from '../../../../../shared/ui/select/app-select.types';
+import { AppRangeSliderComponent } from '../../../../../shared/ui/range-slider/app-range-slider.component';
+import { AppRangeValue } from '../../../../../shared/ui/range-slider/app-range-slider.types';
 import { InfraestruturaFacade } from '../../../facades/infraestrutura.facade';
+import { AbasAnaliseTemporalComponent } from '../../../components/abas-analise-temporal/abas-analise-temporal.component';
 import { ComparacaoGraficoComponent } from '../../../components/comparacao-grafico/comparacao-grafico.component';
 import { ComparacaoResumoComponent } from '../../../components/comparacao-resumo/comparacao-resumo.component';
 import {
   ComposicaoIndiceComponent,
   EstadoComposicaoIndice,
 } from '../../../components/composicao-indice/composicao-indice.component';
+import { FiltrosAnaliseComponent } from '../../../components/filtros-analise/filtros-analise.component';
 import {
   EstadoPainelTerritorial,
   PainelTerritorialComponent,
@@ -33,6 +37,7 @@ import {
   classificarSerieComparacao,
   montarComposicaoIndice,
   montarComposicaoTerritorial,
+  montarResumoAnos,
   selecionarPontoResumo,
 } from '../../../mappers/comparacao-grafico.mapper';
 import {
@@ -41,8 +46,21 @@ import {
   EscolaBuscaModel,
   ItemComposicaoIndiceModel,
   ItemComposicaoTerritorialModel,
+  REDES_ENSINO,
+  RecorteTemporalModel,
+  RedeEnsinoModel,
   SerieGraficoComparacaoModel,
 } from '../../../models/infraestrutura.models';
+import { injectTelaCompacta } from '../../../utils/tela-compacta';
+import {
+  ANOS_PADRAO,
+  FiltrosEscolaModel,
+  FILTROS_ESCOLA_PADRAO,
+  anosDisponiveisDoCatalogo,
+  intervaloAnos,
+  normalizarFiltrosEscola,
+  resumoFiltrosEscola,
+} from './filtros-escola';
 
 interface TerritorialViewModel {
   estado: EstadoPainelTerritorial;
@@ -59,6 +77,7 @@ interface ComposicaoViewModel {
   ano: number | null;
   anos: number[];
   resumo: string | null;
+  resumoAnos: string[];
 }
 
 type EstadoComparacao =
@@ -75,18 +94,35 @@ type EstadoComparacao =
 
 type EstadoCatalogo = 'carregando' | 'pronto' | 'erro';
 
-/** Erros em que tentar de novo pode resolver. */
-const ERROS_RECUPERAVEIS = new Set(['internal_error', 'warehouse_unavailable', 'network_error']);
+interface Consulta {
+  escola: EscolaBuscaModel | null;
+  recorte: RecorteTemporalModel;
+}
 
+/** Erros em que tentar de novo pode resolver. */
+const ERROS_RECUPERAVEIS = new Set([
+  'internal_error',
+  'warehouse_unavailable',
+  'source_data_inconsistent',
+  'network_error',
+]);
+
+/**
+ * Aba "Análise por Escola" (REQ07 Frente 1, FE12): uma escola-alvo comparada à média das
+ * demais escolas do mesmo município, no recorte de rede e anos escolhido nos filtros.
+ */
 @Component({
   selector: 'app-analise-temporal-page',
   standalone: true,
   imports: [
     FormsModule,
     AppSelectComponent,
+    AppRangeSliderComponent,
+    AbasAnaliseTemporalComponent,
     ComparacaoGraficoComponent,
     ComparacaoResumoComponent,
     ComposicaoIndiceComponent,
+    FiltrosAnaliseComponent,
     PaginaCabecalhoComponent,
     PainelTerritorialComponent,
   ],
@@ -98,29 +134,45 @@ export class AnaliseTemporalPageComponent implements OnInit {
   private readonly facade = inject(InfraestruturaFacade);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly textos = TEXTOS_COMPARACAO;
-
-  /** Cada nova seleção cancela a requisição anterior (switchMap). */
-  private readonly selecao$ = new Subject<EscolaBuscaModel | null>();
+  protected readonly telaCompacta = injectTelaCompacta();
 
   protected readonly escolas = signal<EscolaBuscaModel[]>([]);
   protected readonly catalogo = signal<EstadoCatalogo>('carregando');
-  protected readonly escolaSelecionada = signal<EscolaBuscaModel | null>(null);
-  /** Município escolhido no filtro; restringe a lista de escolas. */
-  protected readonly municipioSelecionado = signal<string | null>(null);
+  /** Anos existentes na base (`/filtros`); define os limites do slider. */
+  protected readonly anosDisponiveis = signal<readonly number[]>([]);
+
+  /** Filtros que valem para a consulta. */
+  protected readonly filtros = signal<FiltrosEscolaModel>(FILTROS_ESCOLA_PADRAO);
+  /**
+   * Filtros em edição nos campos. Em tela larga são aplicados a cada mudança; no celular,
+   * só quando o usuário toca em "Aplicar" na gaveta (REQ07 §2.2).
+   */
+  protected readonly rascunho = signal<FiltrosEscolaModel>(FILTROS_ESCOLA_PADRAO);
   protected readonly estado = signal<EstadoComparacao>({ tipo: 'inicial' });
 
+  protected readonly limitesAnos = computed(() => intervaloAnos(this.anosDisponiveis()));
+
+  protected readonly escolaSelecionada = computed(
+    () => this.escolas().find((e) => e.co_entidade === this.filtros().escola) ?? null,
+  );
+
+  /** Escolas que passam nos filtros de município e dependência do rascunho. */
+  private readonly escolasFiltradas = computed(() => {
+    const { municipio, dependenciaEscola } = this.rascunho();
+    return this.escolas().filter(
+      (e) =>
+        (!municipio || e.municipio === municipio) &&
+        (!dependenciaEscola || e.dependencia === dependenciaEscola),
+    );
+  });
+
   protected readonly opcoesEscola = computed<AppSelectOption<number>[]>(() =>
-    this.escolasDoMunicipio().map((e) => ({
+    this.escolasFiltradas().map((e) => ({
       label: e.nome,
       value: e.co_entidade,
       description: `${e.municipio ?? 'Município não informado'} · INEP ${e.co_entidade}`,
     })),
   );
-  protected readonly escolasDoMunicipio = computed(() => {
-    const municipio = this.municipioSelecionado();
-    const escolas = this.escolas();
-    return municipio ? escolas.filter((e) => e.municipio === municipio) : escolas;
-  });
   protected readonly opcoesMunicipio = computed<AppSelectOption<string>[]>(() =>
     [
       ...new Set(
@@ -132,6 +184,25 @@ export class AnaliseTemporalPageComponent implements OnInit {
       .sort((a, b) => a.localeCompare(b, 'pt-BR'))
       .map((m) => ({ label: m, value: m })),
   );
+  protected readonly opcoesDependenciaEscola = computed<AppSelectOption<string>[]>(() =>
+    [
+      ...new Set(
+        this.escolas()
+          .map((e) => e.dependencia)
+          .filter((d): d is string => !!d),
+      ),
+    ]
+      .sort((a, b) => a.localeCompare(b, 'pt-BR'))
+      .map((d) => ({ label: d, value: d })),
+  );
+  protected readonly opcoesRede: AppSelectOption<RedeEnsinoModel>[] = REDES_ENSINO.map((r) => ({
+    label: r,
+    value: r,
+  }));
+
+  protected readonly resumoFiltros = computed(() =>
+    resumoFiltrosEscola(this.filtros(), this.escolaSelecionada()?.nome ?? null, this.limitesAnos()),
+  );
 
   /** Série exibida nos cartões e no gráfico; nula fora do estado de sucesso com dados. */
   protected readonly serie = computed(() => {
@@ -139,6 +210,9 @@ export class AnaliseTemporalPageComponent implements OnInit {
     return e.tipo === 'sucesso' && e.classificacao !== 'sem_historico' ? e.serie : null;
   });
   protected readonly carregando = computed(() => this.estado().tipo === 'carregando');
+  protected readonly dicaGrafico = computed(() =>
+    this.telaCompacta() ? this.textos.dicaGraficoToque : this.textos.dicaGrafico,
+  );
 
   protected readonly mensagemGrafico = computed(() => {
     const e = this.estado();
@@ -158,18 +232,7 @@ export class AnaliseTemporalPageComponent implements OnInit {
     return e.tipo === 'erro' && ERROS_RECUPERAVEIS.has(e.erro.codigo) ? 'Tentar novamente' : null;
   });
 
-  /**
-   * Regras fixas da interface seguidas dos avisos de `metodologia.avisos` (BE09 §15).
-   * Antes da resposta, usa os dois avisos equivalentes do REQ-04.
-   */
-  protected readonly regras = computed(() => {
-    const e = this.estado();
-    const avisos = e.tipo === 'sucesso' ? e.comparacao.metodologia.avisos : [];
-    const fixas = this.textos.regras.slice(0, 3);
-    return avisos.length > 0 ? [...fixas, ...avisos] : [...this.textos.regras];
-  });
-
-  /** Ano escolhido no seletor da composição; `null` usa o último ano disponível. */
+  /** Ano escolhido no seletor da composição; `null` usa o último ano do intervalo. */
   protected readonly anoComposicao = signal<number | null>(null);
 
   /** Ano e ponto da série usados pelas duas composições; `null` fora do estado de sucesso. */
@@ -195,6 +258,7 @@ export class AnaliseTemporalPageComponent implements OnInit {
         e.tipo === 'carregando' ? 'carregando' : e.tipo === 'erro' ? 'erro' : 'inicial';
       return { ...vazio, estado };
     }
+    if (e.classificacao === 'sem_historico') return { ...vazio, estado: 'sem_dados' };
 
     const { ano, ponto } = this.pontoSelecionado()!;
     if (!ponto || !ponto.registro_historico_disponivel || !ponto.municipio_referencia) {
@@ -213,19 +277,20 @@ export class AnaliseTemporalPageComponent implements OnInit {
 
   protected readonly composicao = computed<ComposicaoViewModel>(() => {
     const e = this.estado();
+    const vazio = { ano: null, anos: [], resumo: null, resumoAnos: [] };
     if (e.tipo !== 'sucesso') {
       const estado: EstadoComposicaoIndice =
         e.tipo === 'carregando' ? 'carregando' : e.tipo === 'erro' ? 'erro' : 'inicial';
+      return { ...vazio, estado, itens: montarComposicaoIndice(null, INDICADORES_METODOLOGIA) };
+    }
+    if (e.classificacao === 'sem_historico') {
       return {
-        estado,
-        itens: montarComposicaoIndice(null, INDICADORES_METODOLOGIA),
-        ano: null,
-        anos: [],
-        resumo: null,
+        ...vazio,
+        estado: 'sem_dados',
+        itens: montarComposicaoIndice(null, e.comparacao.metodologia.indicadores),
       };
     }
 
-    const anos = e.serie.anos;
     const { ano, ponto } = this.pontoSelecionado()!;
     const comRegistro = ponto !== null && ponto.registro_historico_disponivel;
     const t = this.textos.composicao;
@@ -237,7 +302,7 @@ export class AnaliseTemporalPageComponent implements OnInit {
         e.comparacao.metodologia.indicadores,
       ),
       ano,
-      anos,
+      anos: e.serie.anos,
       resumo: comRegistro
         ? t.resumo(
             ponto.quantidade_indicadores_presentes,
@@ -245,20 +310,44 @@ export class AnaliseTemporalPageComponent implements OnInit {
             ponto.total_indicadores,
           )
         : null,
+      resumoAnos: montarResumoAnos(e.serie),
     };
   });
 
-  ngOnInit(): void {
-    this.carregarCatalogo();
+  /** Escola e recorte da consulta; só muda quando algum valor de fato muda. */
+  private readonly consulta = computed<Consulta | null>(() => {
+    if (this.catalogo() !== 'pronto') return null;
+    const f = this.filtros();
+    const [ano_inicio, ano_fim] = f.anos ?? this.limitesAnos();
+    return {
+      escola: this.escolaSelecionada(),
+      recorte: {
+        rede_ensino: f.redeMunicipio ? [f.redeMunicipio] : [],
+        ano_inicio,
+        ano_fim,
+      },
+    };
+  });
 
-    this.selecao$
+  /** Incrementado por "Tentar novamente" para repetir a mesma consulta. */
+  private readonly tentativa = signal(0);
+
+  constructor() {
+    toObservable(computed(() => ({ consulta: this.consulta(), tentativa: this.tentativa() })))
       .pipe(
-        switchMap((escola) =>
-          escola ? this.carregarComparacao(escola) : of({ tipo: 'inicial' as const }),
+        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        switchMap(({ consulta }) =>
+          consulta?.escola
+            ? this.carregarComparacao(consulta.escola, consulta.recorte)
+            : of<EstadoComparacao>({ tipo: 'inicial' }),
         ),
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((estado) => this.estado.set(estado));
+  }
+
+  ngOnInit(): void {
+    this.carregarCatalogo();
   }
 
   protected carregarCatalogo(): void {
@@ -269,43 +358,57 @@ export class AnaliseTemporalPageComponent implements OnInit {
       .subscribe({
         next: (escolas) => {
           this.escolas.set(escolas);
-          this.catalogo.set('pronto');
+          this.carregarAnos();
         },
         error: () => this.catalogo.set('erro'),
       });
   }
 
+  /** Anos da base para o slider; sem resposta, usa o período padrão da metodologia. */
+  private carregarAnos(): void {
+    this.facade
+      .listarFiltros()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((filtros) => {
+        this.anosDisponiveis.set(anosDisponiveisDoCatalogo(filtros.anos, ANOS_PADRAO));
+        this.catalogo.set('pronto');
+      });
+  }
+
+  /** Mudança num campo: atualiza o rascunho e, fora do celular, aplica na hora. */
+  protected alterar(parcial: Partial<FiltrosEscolaModel>): void {
+    this.rascunho.update((r) => normalizarFiltrosEscola({ ...r, ...parcial }, this.escolas()));
+    if (!this.telaCompacta()) this.aplicarRascunho();
+  }
+
+  /** Escolher uma escola leva o município dela para o filtro de município. */
   protected onEscolaChange(coEntidade: number | null): void {
     const escola = this.escolas().find((e) => e.co_entidade === coEntidade) ?? null;
-    if (escola) {
-      this.selecionar(escola);
-    } else {
-      this.limpar();
-    }
-  }
-
-  /** Escola de outro município é desmarcada; a mesma escola continua selecionada. */
-  protected onMunicipioChange(municipio: string | null): void {
-    this.municipioSelecionado.set(municipio);
-    const escola = this.escolaSelecionada();
-    if (escola && municipio && escola.municipio !== municipio) this.limpar();
-  }
-
-  protected selecionar(escola: EscolaBuscaModel): void {
-    this.escolaSelecionada.set(escola);
-    if (escola.municipio) this.municipioSelecionado.set(escola.municipio);
     this.anoComposicao.set(null);
-    this.selecao$.next(escola);
+    this.alterar(
+      escola
+        ? { escola: escola.co_entidade, municipio: escola.municipio ?? this.rascunho().municipio }
+        : { escola: null },
+    );
+  }
+
+  protected onAnosChange(anos: AppRangeValue): void {
+    this.anoComposicao.set(null);
+    const [min, max] = this.limitesAnos();
+    this.alterar({ anos: anos[0] === min && anos[1] === max ? null : anos });
+  }
+
+  protected aplicarRascunho(): void {
+    this.filtros.set(this.rascunho());
+  }
+
+  /** Abrir a gaveta parte dos filtros aplicados; fechar sem aplicar descarta o rascunho. */
+  protected reiniciarRascunho(): void {
+    this.rascunho.set(this.filtros());
   }
 
   protected onAnoComposicaoChange(ano: number): void {
     this.anoComposicao.set(ano);
-  }
-
-  protected limpar(): void {
-    this.escolaSelecionada.set(null);
-    this.anoComposicao.set(null);
-    this.selecao$.next(null);
   }
 
   protected tentarNovamente(): void {
@@ -313,12 +416,14 @@ export class AnaliseTemporalPageComponent implements OnInit {
       this.carregarCatalogo();
       return;
     }
-    const escola = this.escolaSelecionada();
-    if (escola) this.selecao$.next(escola);
+    this.tentativa.update((n) => n + 1);
   }
 
-  private carregarComparacao(escola: EscolaBuscaModel): Observable<EstadoComparacao> {
-    return this.facade.obterComparacaoEscolaMunicipio(escola.co_entidade).pipe(
+  private carregarComparacao(
+    escola: EscolaBuscaModel,
+    recorte: RecorteTemporalModel,
+  ): Observable<EstadoComparacao> {
+    return this.facade.obterComparacaoEscolaMunicipio(escola.co_entidade, recorte).pipe(
       map((comparacao): EstadoComparacao => {
         const serie = prepararSerieGraficoComparacao(comparacao.serie, comparacao.metodologia.anos);
         return {

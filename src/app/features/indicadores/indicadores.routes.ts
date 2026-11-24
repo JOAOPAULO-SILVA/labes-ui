@@ -100,6 +100,13 @@ export const indicadoresRoutes: Routes = [
       ),
   },
   {
+    path: 'infraestrutura/analise-temporal/municipio',
+    loadComponent: () =>
+      import('./pages/infraestrutura/visao-municipio-page/visao-municipio-page.component').then(
+        (m) => m.VisaoMunicipioPageComponent,
+      ),
+  },
+  {
     // FE11: protótipo de descoberta com dados fictícios; propositalmente fora do menu.
     path: 'infraestrutura/comparacao-multipla',
     loadComponent: () =>

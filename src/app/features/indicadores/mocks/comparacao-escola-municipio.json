@@ -1,6 +1,11 @@
 {
   "descricao": "comparacao_infraestrutura_escola_municipio",
   "data": {
+    "filtros": {
+      "rede_ensino": [],
+      "ano_inicio": 2022,
+      "ano_fim": 2025
+    },
     "escola": {
       "co_entidade": 15012345,
       "no_entidade": "EMEF Exemplo"
@@ -35,7 +40,7 @@
       "total_indicadores": 17,
       "cobertura_minima_percentual": null,
       "observacao": "Metodologia provisória e não homologada. Os resultados não são indicadores oficiais.",
-      "limiar_alerta_cobertura_percentual": 60.0,
+      "limiar_alerta_cobertura_percentual": 60,
       "limiar_alerta_cobertura_status": "confirmado_req05",
       "limiar_alerta_cobertura_escopo": "escola_selecionada",
       "validacao_empirica_cobertura_status": "parcial_dad06_q8b",
@@ -98,7 +103,7 @@
             "quantidade_validos": 85,
             "quantidade_sem_dados": 9,
             "quantidade_escolas_referencia": 94,
-            "percentual_presentes": 20.0,
+            "percentual_presentes": 20,
             "cobertura_percentual": 90.43
           },
           "in_esgoto_rede_publica": {
@@ -130,7 +135,7 @@
             "quantidade_validos": 85,
             "quantidade_sem_dados": 9,
             "quantidade_escolas_referencia": 94,
-            "percentual_presentes": 40.0,
+            "percentual_presentes": 40,
             "cobertura_percentual": 90.43
           },
           "in_biblioteca": {
@@ -162,7 +167,7 @@
             "quantidade_validos": 85,
             "quantidade_sem_dados": 9,
             "quantidade_escolas_referencia": 94,
-            "percentual_presentes": 60.0,
+            "percentual_presentes": 60,
             "cobertura_percentual": 90.43
           },
           "in_sala_multiuso": {
@@ -194,7 +199,7 @@
             "quantidade_validos": 85,
             "quantidade_sem_dados": 9,
             "quantidade_escolas_referencia": 94,
-            "percentual_presentes": 80.0,
+            "percentual_presentes": 80,
             "cobertura_percentual": 90.43
           },
           "in_quadra_esportes": {
@@ -482,7 +487,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_energia_rede_publica": {
             "quantidade_presentes": 0,
@@ -490,7 +495,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_esgoto_rede_publica": {
             "quantidade_presentes": 0,
@@ -498,7 +503,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_lixo_servico_coleta": {
             "quantidade_presentes": 0,
@@ -506,7 +511,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_banheiro": {
             "quantidade_presentes": 0,
@@ -514,7 +519,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_banheiro_pne": {
             "quantidade_presentes": 0,
@@ -522,7 +527,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_biblioteca": {
             "quantidade_presentes": 0,
@@ -530,7 +535,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_sala_leitura": {
             "quantidade_presentes": 0,
@@ -538,7 +543,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_laboratorio_ciencias": {
             "quantidade_presentes": 0,
@@ -546,7 +551,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_laboratorio_informatica": {
             "quantidade_presentes": 0,
@@ -554,7 +559,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_sala_multiuso": {
             "quantidade_presentes": 0,
@@ -562,7 +567,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_sala_atendimento_especial": {
             "quantidade_presentes": 0,
@@ -570,7 +575,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_cozinha": {
             "quantidade_presentes": 0,
@@ -578,7 +583,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_refeitorio": {
             "quantidade_presentes": 0,
@@ -586,7 +591,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_quadra_esportes": {
             "quantidade_presentes": 0,
@@ -594,7 +599,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_patio_coberto": {
             "quantidade_presentes": 0,
@@ -602,7 +607,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           },
           "in_auditorio": {
             "quantidade_presentes": 0,
@@ -610,7 +615,7 @@
             "quantidade_sem_dados": 96,
             "quantidade_escolas_referencia": 96,
             "percentual_presentes": null,
-            "cobertura_percentual": 0.0
+            "cobertura_percentual": 0
           }
         }
       }
